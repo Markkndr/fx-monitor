@@ -13,6 +13,7 @@ A treasury-grade platform that gives finance teams a real-time, consolidated vie
 <img src="https://img.shields.io/badge/Spring_Boot-4.0.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 4.0.2">
 <img src="https://img.shields.io/badge/JavaFX-21-1283C3?style=for-the-badge&logo=openjdk&logoColor=white" alt="JavaFX 21">
 <img src="https://img.shields.io/badge/H2_Database-09476B?style=for-the-badge&logo=databricks&logoColor=white" alt="H2 Database">
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
 <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License: MIT">
 
 </div>
@@ -121,6 +122,11 @@ What runs today is a **single Spring Boot process that also hosts a JavaFX deskt
   REST API (Spring MVC):  /api/auth/*,  /api/exchange-rates/*
 ```
 
+The whole process is also **containerized**: the same JavaFX UI runs against a
+virtual display inside the container and is streamed to the browser over noVNC
+(`:6080`), with the REST API on `:8080` and the H2 file DB kept in a Docker volume.
+See [Run with Docker](#run-with-docker).
+
 ### Target architecture (vision)
 
 The full platform aims for the components below. **None of these are implemented yet** — they describe the roadmap, not the current build.
@@ -154,6 +160,7 @@ The full platform aims for the components below. **None of these are implemented
 | **Database** | H2 (embedded, file-based) |
 | **Auth** | JWT-based authentication (jjwt 0.12) + Spring Security |
 | **Live rates** | exchangerate-api.com via `RestTemplate`, cached with Spring Cache |
+| **Containerization** | Docker (multi-stage build) + Docker Compose; JavaFX UI served over noVNC |
 
 **Planned (roadmap):**
 
@@ -182,6 +189,7 @@ The foundational layer is in place. Implemented so far:
 - 💱 **Live exchange rates** — external rate-feed integration (exchangerate-api.com) with caching and a `/api/exchange-rates` API
 - 🖥️ **Desktop UI** — a JavaFX front-end (login, register, dashboard with wallet, live-rate, transaction-history, and statistics tabs) that calls the service layer in-process
 - 🗄️ **Persistence** — Spring Data JPA repositories over an embedded H2 database (a PostgreSQL driver is bundled for a future server deployment)
+- 🐳 **Containerization** — a multi-stage Docker build and Docker Compose setup that runs the JavaFX UI in a browser via noVNC, with the H2 database persisted in a volume (see [Run with Docker](#run-with-docker))
 
 The first slice of **exposure tracking** (net exposure & home-currency valuation) has landed; hedging, multi-provider rate feeds, and the advanced-analytics phases described in the [roadmap](#-roadmap) are the next milestones.
 
@@ -228,7 +236,7 @@ The first slice of **exposure tracking** (net exposure & home-currency valuation
 
 ### Prerequisites
 
-- **Java 21+** and **Maven**
+- **Java 21+** and **Maven** — for a native run. Or, to skip the local toolchain entirely, just **Docker** (see [Run with Docker](#run-with-docker)).
 - No database setup required — the app uses an embedded **H2** file database by default (stored under `~/.fx-monitor/`). PostgreSQL is optional and only needed for a future server deployment.
 
 ### Run the desktop app
