@@ -1,0 +1,24 @@
+# Build output — rebuilt inside the image
+target/
+
+# Logs
+*.log
+
+# IDE / editor
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# VCS
+.git/
+.gitignore
+
+# Docker artifacts themselves
+Dockerfile
+.dockerignore
+
+# Local H2 database files
+*.mv.db
+*.trace.db

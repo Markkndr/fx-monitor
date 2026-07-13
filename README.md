@@ -250,6 +250,39 @@ export FOREX_API_KEY="optional-exchange-rate-api-key"
 
 > 🔐 Keep secrets out of version control — always provide `JWT_SECRET` via the environment in any real deployment.
 
+### Run with Docker
+
+Prefer not to install Java/Maven locally? The app is containerized and the JavaFX
+UI is served over **noVNC**, so you can view it in a browser — no host X server needed.
+
+```bash
+git clone https://github.com/Markkndr/fx-monitor.git
+cd fx-monitor
+
+# Build the image and start the container
+docker compose up --build
+```
+
+Then open the UI in your browser:
+
+```
+http://localhost:6080/vnc.html
+```
+
+The REST API is also exposed on `http://localhost:8080`. The embedded H2 database is
+persisted in the `fxdata` Docker volume, so your data survives container restarts.
+
+> ⚙️ Configure secrets/keys via the `environment:` block in `docker-compose.yml`
+> (`JWT_SECRET`, optional `FOREX_API_KEY`). The bundled `JWT_SECRET` is a dev-only
+> placeholder — replace it for anything beyond local use.
+
+To stop and remove the container:
+
+```bash
+docker compose down          # keep the database volume
+docker compose down -v       # also delete the persisted H2 data
+```
+
 ---
 
 ## 📂 Project Structure

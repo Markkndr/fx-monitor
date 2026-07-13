@@ -1,0 +1,27 @@
+# One-command local run of the FX Monitor desktop app, viewable in a browser.
+#
+#   docker compose up --build
+#   open http://localhost:6080/vnc.html
+#
+services:
+  fx-monitor:
+    build:
+      context: ./fx-monitor
+      dockerfile: Dockerfile
+    image: fx-monitor:latest
+    container_name: fx-monitor
+    ports:
+      - "127.0.0.1:6080:6080"   # noVNC web UI (view the JavaFX app in a browser)
+      - "127.0.0.1:8080:8080"   # REST API
+    environment:
+      # Dev-only secret so the container runs out of the box.
+      # Override with a real 256-bit+ value for anything beyond local use.
+      JWT_SECRET: "docker-dev-insecure-secret-change-me-make-it-long-and-secure-256bits"
+      SCREEN_GEOMETRY: "1280x800x24"
+      # FOREX_API_KEY: ""       # optional exchange-rate-api key
+    volumes:
+      - fxdata:/root/.fx-monitor   # persist the embedded H2 database
+    restart: unless-stopped
+
+volumes:
+  fxdata:
