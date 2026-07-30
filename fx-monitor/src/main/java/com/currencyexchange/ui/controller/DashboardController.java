@@ -4,6 +4,7 @@ import com.currencyexchange.dto.auth.AuthResponseDTO;
 import com.currencyexchange.dto.exchange.ExchangeRateDTO;
 import com.currencyexchange.dto.statistics.CurrencyExposureDTO;
 import com.currencyexchange.dto.statistics.PortfolioStatisticsDTO;
+import com.currencyexchange.dto.transactions.CreateTransactionRequestDTO;
 import com.currencyexchange.dto.transactions.TransactionDTO;
 import com.currencyexchange.entity.Wallet;
 import com.currencyexchange.repository.WalletRepository;
@@ -17,11 +18,19 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -160,7 +169,7 @@ public class DashboardController {
 
         Label loading = new Label("Loading transactions...");
         loading.getStyleClass().add("muted-text");
-        contentArea.getChildren().add(loading);
+        contentArea.getChildren().addAll(buildTransactionsActionBar(), loading);
 
         Long userId = session.getUserId();
         Thread t = new Thread(() -> {
@@ -184,6 +193,7 @@ public class DashboardController {
 
     private void displayTransactions(List<TransactionDTO> transactions, Map<Long, String> walletCurrencies) {
         contentArea.getChildren().clear();
+        contentArea.getChildren().add(buildTransactionsActionBar());
 
         if (transactions.isEmpty()) {
             Label empty = new Label("No transactions yet. Your activity will appear here.");
@@ -199,6 +209,185 @@ public class DashboardController {
             table.getChildren().add(buildTransactionRow(txn, walletCurrencies));
         }
         contentArea.getChildren().add(table);
+    }
+
+    private HBox buildTransactionsActionBar() {
+        Button add = new Button("+ New Transaction");
+        add.getStyleClass().add("action-button");
+        add.setOnAction(e -> openCreateTransactionDialog());
+
+        HBox bar = new HBox(add);
+        bar.setAlignment(Pos.CENTER_LEFT);
+        return bar;
+    }
+
+    /**
+     * Opens a modal form for creating a transaction. On success the dialog
+     * closes and the transaction list refreshes. Wallet pickers are optional,
+     * so single-sided transactions (deposit/withdrawal) and two-sided ones
+     * (exchange/transfer) are both expressible. Ownership of any selected
+     * wallet is enforced server-side by {@link TransactionService}.
+     */
+    private void openCreateTransactionDialog() {
+        AuthResponseDTO session = SessionManager.getSession();
+        if (session == null) return;
+        Long userId = session.getUserId();
+
+        List<Wallet> wallets = walletRepository.findByUserId(userId);
+
+        ComboBox<String> typeBox = new ComboBox<>();
+        typeBox.getItems().addAll("EXCHANGE", "DEPOSIT", "WITHDRAWAL", "TRANSFER");
+        typeBox.setValue("EXCHANGE");
+        typeBox.setMaxWidth(Double.MAX_VALUE);
+
+        ComboBox<Wallet> fromBox = walletComboBox(wallets);
+        ComboBox<Wallet> toBox = walletComboBox(wallets);
+
+        TextField fromAmount = dialogField("0.00");
+        TextField toAmount = dialogField("0.00");
+        TextField rate = dialogField("optional");
+        TextField fee = dialogField("0.00");
+        TextField description = dialogField("optional");
+
+        Label error = new Label();
+        error.getStyleClass().add("error-label");
+        error.setWrapText(true);
+        error.setManaged(false);
+        error.setVisible(false);
+
+        Button submit = new Button("Create Transaction");
+        submit.getStyleClass().add("primary-button");
+        submit.setMaxWidth(Double.MAX_VALUE);
+
+        Button cancel = new Button("Cancel");
+        cancel.getStyleClass().add("link-text");
+        cancel.setMaxWidth(Double.MAX_VALUE);
+
+        Label title = new Label("New Transaction");
+        title.getStyleClass().add("dialog-title");
+
+        VBox form = new VBox(12);
+        form.getStyleClass().add("dialog-form");
+        form.setPrefWidth(360);
+        form.getChildren().addAll(
+                title,
+                labeledControl("TYPE", typeBox),
+                labeledControl("FROM WALLET", fromBox),
+                labeledControl("TO WALLET", toBox),
+                labeledControl("FROM AMOUNT", fromAmount),
+                labeledControl("TO AMOUNT", toAmount),
+                labeledControl("EXCHANGE RATE", rate),
+                labeledControl("FEE", fee),
+                labeledControl("DESCRIPTION", description),
+                error,
+                submit,
+                cancel);
+
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.initOwner(contentArea.getScene().getWindow());
+        dialog.setTitle("New Transaction");
+
+        cancel.setOnAction(e -> dialog.close());
+
+        submit.setOnAction(e -> {
+            error.setManaged(false);
+            error.setVisible(false);
+
+            BigDecimal fromAmt;
+            BigDecimal toAmt;
+            BigDecimal rateVal = null;
+            BigDecimal feeVal = null;
+            try {
+                fromAmt = new BigDecimal(fromAmount.getText().trim());
+                toAmt = new BigDecimal(toAmount.getText().trim());
+                if (!rate.getText().trim().isEmpty()) rateVal = new BigDecimal(rate.getText().trim());
+                if (!fee.getText().trim().isEmpty()) feeVal = new BigDecimal(fee.getText().trim());
+            } catch (NumberFormatException ex) {
+                showDialogError(error, "Amounts, rate and fee must be valid numbers.");
+                return;
+            }
+
+            if (fromAmt.signum() <= 0 || toAmt.signum() <= 0) {
+                showDialogError(error, "From and To amounts must be greater than zero.");
+                return;
+            }
+
+            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO();
+            request.setTransactionType(typeBox.getValue());
+            request.setFromWalletId(fromBox.getValue() != null ? fromBox.getValue().getId() : null);
+            request.setToWalletId(toBox.getValue() != null ? toBox.getValue().getId() : null);
+            request.setFromAmount(fromAmt);
+            request.setToAmount(toAmt);
+            request.setExchangeRateUsed(rateVal);
+            request.setFeeAmount(feeVal);
+            String desc = description.getText().trim();
+            request.setDescription(desc.isEmpty() ? null : desc);
+
+            submit.setDisable(true);
+            Thread t = new Thread(() -> {
+                try {
+                    transactionService.createTransaction(userId, request);
+                    Platform.runLater(() -> {
+                        dialog.close();
+                        showTransactions();
+                    });
+                } catch (Exception ex) {
+                    Platform.runLater(() -> {
+                        showDialogError(error, "Could not create transaction: " + ex.getMessage());
+                        submit.setDisable(false);
+                    });
+                }
+            }, "create-transaction");
+            t.setDaemon(true);
+            t.start();
+        });
+
+        Scene scene = new Scene(form);
+        scene.getStylesheets().add(
+                getClass().getResource("/css/styles.css").toExternalForm());
+        dialog.setScene(scene);
+        dialog.setResizable(false);
+        dialog.showAndWait();
+    }
+
+    private ComboBox<Wallet> walletComboBox(List<Wallet> wallets) {
+        ComboBox<Wallet> box = new ComboBox<>();
+        box.getItems().addAll(wallets);
+        box.setMaxWidth(Double.MAX_VALUE);
+        box.setPromptText("None");
+        box.setConverter(new StringConverter<Wallet>() {
+            @Override
+            public String toString(Wallet wallet) {
+                return wallet == null ? "None"
+                        : wallet.getCurrency() + " — " + wallet.getBalance().toPlainString();
+            }
+
+            @Override
+            public Wallet fromString(String string) {
+                return null;
+            }
+        });
+        return box;
+    }
+
+    private TextField dialogField(String prompt) {
+        TextField field = new TextField();
+        field.setPromptText(prompt);
+        field.getStyleClass().add("input-field");
+        return field;
+    }
+
+    private VBox labeledControl(String labelText, Node control) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("field-label");
+        return new VBox(4, label, control);
+    }
+
+    private void showDialogError(Label error, String message) {
+        error.setText(message);
+        error.setManaged(true);
+        error.setVisible(true);
     }
 
     private HBox buildTransactionHeader() {

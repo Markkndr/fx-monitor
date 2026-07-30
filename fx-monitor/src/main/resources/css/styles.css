@@ -52,6 +52,21 @@
 }
 
 /* ===== Buttons ===== */
+.action-button {
+    -fx-background-color: #5865f2;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 16 9 16;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.action-button:hover {
+    -fx-background-color: #4752c4;
+}
+
 .primary-button {
     -fx-background-color: #5865f2;
     -fx-text-fill: #ffffff;
@@ -364,4 +379,55 @@
 .txn-status-cancelled {
     -fx-background-color: #4a1f23;
     -fx-text-fill: #ed4245;
+}
+
+/* ===== New Transaction Dialog ===== */
+.dialog-form {
+    -fx-background-color: #2c2f33;
+    -fx-padding: 24;
+}
+
+.dialog-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 4 0;
+}
+
+.combo-box {
+    -fx-background-color: #40444b;
+    -fx-background-radius: 4;
+    -fx-border-width: 0;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: #dcddde;
+    -fx-background-color: transparent;
+    -fx-padding: 8 10 8 10;
+}
+
+.combo-box .arrow,
+.combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.combo-box .arrow {
+    -fx-background-color: #b9bbbe;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #40444b;
+    -fx-border-color: #40444b;
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-text-fill: #dcddde;
+    -fx-background-color: #40444b;
+    -fx-padding: 8 10 8 10;
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover,
+.combo-box-popup .list-view .list-cell:filled:selected {
+    -fx-background-color: #5865f2;
+    -fx-text-fill: #ffffff;
 }
