@@ -63,7 +63,7 @@ public class DashboardController {
             userNameLabel.setText(session.getFullName());
             userEmailLabel.setText(session.getEmail());
         }
-        showWallets();
+        showPositions();
         loadExchangeRates();
     }
 
@@ -125,8 +125,8 @@ public class DashboardController {
     }
 
     @FXML
-    private void showWallets() {
-        pageTitle.setText("My Wallets");
+    private void showPositions() {
+        pageTitle.setText("My Positions");
         contentArea.getChildren().clear();
 
         AuthResponseDTO session = SessionManager.getSession();
@@ -135,7 +135,7 @@ public class DashboardController {
         List<Wallet> wallets = walletRepository.findByUserId(session.getUserId());
 
         if (wallets.isEmpty()) {
-            Label empty = new Label("No wallets yet. Wallets will appear here once created.");
+            Label empty = new Label("No positions yet. Positions will appear here once created.");
             empty.getStyleClass().add("muted-text");
             contentArea.getChildren().add(empty);
             return;
@@ -145,7 +145,7 @@ public class DashboardController {
         cards.setHgap(16);
         cards.setVgap(16);
         for (Wallet wallet : wallets) {
-            cards.getChildren().add(buildWalletCard(wallet));
+            cards.getChildren().add(buildPositionCard(wallet));
         }
         contentArea.getChildren().add(cards);
     }
@@ -454,7 +454,7 @@ public class DashboardController {
         }
     }
 
-    private VBox buildWalletCard(Wallet wallet) {
+    private VBox buildPositionCard(Wallet wallet) {
         VBox card = new VBox(8);
         card.getStyleClass().add("wallet-card");
         card.setPrefWidth(200);
