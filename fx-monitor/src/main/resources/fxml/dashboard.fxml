@@ -16,8 +16,8 @@
         </VBox>
 
         <VBox styleClass="nav-section" spacing="2" VBox.vgrow="ALWAYS">
-            <Button text="  Positions" styleClass="nav-button" maxWidth="Infinity"
-                    alignment="CENTER_LEFT" onAction="#showPositions"/>
+            <Button text="  Wallets" styleClass="nav-button" maxWidth="Infinity"
+                    alignment="CENTER_LEFT" onAction="#showWallets"/>
             <Button text="  Transactions" styleClass="nav-button" maxWidth="Infinity"
                     alignment="CENTER_LEFT" onAction="#showTransactions"/>
             <Button text="  Statistics" styleClass="nav-button" maxWidth="Infinity"
@@ -35,7 +35,7 @@
     <VBox HBox.hgrow="ALWAYS" styleClass="main-content">
 
         <HBox styleClass="topbar" alignment="CENTER_LEFT" maxWidth="Infinity">
-            <Label fx:id="pageTitle" styleClass="page-title" text="My Positions"/>
+            <Label fx:id="pageTitle" styleClass="page-title" text="My Wallets"/>
         </HBox>
 
         <!-- Live rates strip -->
