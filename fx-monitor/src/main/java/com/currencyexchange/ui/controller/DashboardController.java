@@ -2,14 +2,18 @@ package com.currencyexchange.ui.controller;
 
 import com.currencyexchange.dto.auth.AuthResponseDTO;
 import com.currencyexchange.dto.exchange.ExchangeRateDTO;
+import com.currencyexchange.dto.exposures.CreateExposureRequestDTO;
+import com.currencyexchange.dto.exposures.ExposureDTO;
 import com.currencyexchange.dto.statistics.CurrencyExposureDTO;
 import com.currencyexchange.dto.statistics.PortfolioStatisticsDTO;
 import com.currencyexchange.dto.transactions.CreateTransactionRequestDTO;
 import com.currencyexchange.dto.transactions.TransactionDTO;
+import com.currencyexchange.entity.Exposure;
 import com.currencyexchange.entity.Wallet;
 import com.currencyexchange.repository.WalletRepository;
 import com.currencyexchange.service.AuthService;
 import com.currencyexchange.service.ExchangeRateService;
+import com.currencyexchange.service.ExposureService;
 import com.currencyexchange.service.PortfolioStatisticsService;
 import com.currencyexchange.service.TransactionService;
 import com.currencyexchange.ui.util.SceneNavigator;
@@ -22,6 +26,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
@@ -37,6 +42,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -50,12 +56,16 @@ public class DashboardController {
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
 
+    private static final DateTimeFormatter DATE_ONLY_FORMAT =
+            DateTimeFormatter.ofPattern("dd MMM yyyy");
+
     private static final String HOME_CURRENCY = "USD";
 
     @Autowired private WalletRepository walletRepository;
     @Autowired private AuthService authService;
     @Autowired private ExchangeRateService exchangeRateService;
     @Autowired private TransactionService transactionService;
+    @Autowired private ExposureService exposureService;
     @Autowired private PortfolioStatisticsService portfolioStatisticsService;
     @Autowired private ApplicationContext applicationContext;
 
@@ -157,6 +167,261 @@ public class DashboardController {
             cards.getChildren().add(buildWalletCard(wallet));
         }
         contentArea.getChildren().add(cards);
+    }
+
+    @FXML
+    private void showExposures() {
+        pageTitle.setText("Exposures");
+        contentArea.getChildren().clear();
+
+        AuthResponseDTO session = SessionManager.getSession();
+        if (session == null) return;
+
+        Label loading = new Label("Loading exposures...");
+        loading.getStyleClass().add("muted-text");
+        contentArea.getChildren().addAll(buildExposuresActionBar(), loading);
+
+        Long userId = session.getUserId();
+        Thread t = new Thread(() -> {
+            try {
+                List<ExposureDTO> exposures = exposureService.getUserExposures(userId);
+                Platform.runLater(() -> displayExposures(exposures));
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    contentArea.getChildren().clear();
+                    contentArea.getChildren().add(buildExposuresActionBar());
+                    Label err = new Label("Exposures unavailable.");
+                    err.getStyleClass().add("muted-text");
+                    contentArea.getChildren().add(err);
+                });
+            }
+        }, "exposure-loader");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void displayExposures(List<ExposureDTO> exposures) {
+        contentArea.getChildren().clear();
+        contentArea.getChildren().add(buildExposuresActionBar());
+
+        if (exposures.isEmpty()) {
+            Label empty = new Label("No exposures yet. Add a receivable, payable, or cash position to get started.");
+            empty.getStyleClass().add("muted-text");
+            contentArea.getChildren().add(empty);
+            return;
+        }
+
+        VBox table = new VBox();
+        table.getStyleClass().add("txn-table");
+        table.getChildren().add(buildExposureListHeader());
+        for (ExposureDTO exposure : exposures) {
+            table.getChildren().add(buildExposureListRow(exposure));
+        }
+        contentArea.getChildren().add(table);
+    }
+
+    private HBox buildExposuresActionBar() {
+        Button add = new Button("+ New Exposure");
+        add.getStyleClass().add("action-button");
+        add.setOnAction(e -> openCreateExposureDialog());
+
+        HBox bar = new HBox(add);
+        bar.setAlignment(Pos.CENTER_LEFT);
+        return bar;
+    }
+
+    private HBox buildExposureListHeader() {
+        HBox header = new HBox();
+        header.getStyleClass().add("txn-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getChildren().addAll(
+                headerCell("TYPE", 130),
+                headerCell("CURRENCY", 90),
+                headerCell("POSITION", 0),
+                headerCell("COUNTERPARTY", 180),
+                headerCell("MATURITY", 120),
+                headerCell("STATUS", 110));
+        return header;
+    }
+
+    private HBox buildExposureListRow(ExposureDTO exposure) {
+        HBox row = new HBox();
+        row.getStyleClass().add("txn-row");
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        Label type = new Label(exposure.getType());
+        type.getStyleClass().add("txn-badge");
+        HBox typeBox = new HBox(type);
+        typeBox.setMinWidth(130);
+        typeBox.setPrefWidth(130);
+        typeBox.setAlignment(Pos.CENTER_LEFT);
+
+        Label currency = new Label(exposure.getCurrency());
+        currency.getStyleClass().add("txn-cell");
+        currency.setMinWidth(90);
+        currency.setPrefWidth(90);
+
+        BigDecimal signed = exposure.getSignedAmount() != null
+                ? exposure.getSignedAmount() : exposure.getAmount();
+        Label position = new Label(formatMoney(signed) + " " + exposure.getCurrency());
+        position.getStyleClass().add("txn-cell");
+        position.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(position, Priority.ALWAYS);
+
+        Label counterparty = new Label(exposure.getCounterparty() != null
+                ? exposure.getCounterparty() : "—");
+        counterparty.getStyleClass().add("txn-cell-muted");
+        counterparty.setMinWidth(180);
+        counterparty.setPrefWidth(180);
+
+        Label maturity = new Label(exposure.getMaturityDate() != null
+                ? exposure.getMaturityDate().format(DATE_ONLY_FORMAT) : "—");
+        maturity.getStyleClass().add("txn-cell-muted");
+        maturity.setMinWidth(120);
+        maturity.setPrefWidth(120);
+
+        Label status = new Label(exposure.getStatus());
+        status.getStyleClass().addAll("txn-badge", "txn-status-" + exposure.getStatus().toLowerCase());
+        HBox statusBox = new HBox(status);
+        statusBox.setMinWidth(110);
+        statusBox.setPrefWidth(110);
+        statusBox.setAlignment(Pos.CENTER_LEFT);
+
+        row.getChildren().addAll(typeBox, currency, position, counterparty, maturity, statusBox);
+        return row;
+    }
+
+    /**
+     * Opens a modal form for booking an exposure. Amount is always entered as a
+     * positive number; the type (receivable, payable, cash, …) determines whether
+     * the position nets long or short. On success the dialog closes and the
+     * exposures list refreshes.
+     */
+    private void openCreateExposureDialog() {
+        AuthResponseDTO session = SessionManager.getSession();
+        if (session == null) return;
+        Long userId = session.getUserId();
+
+        ComboBox<String> typeBox = new ComboBox<>();
+        typeBox.getItems().addAll(
+                Exposure.TYPE_RECEIVABLE, Exposure.TYPE_PAYABLE, Exposure.TYPE_CASH,
+                Exposure.TYPE_INTERCOMPANY, Exposure.TYPE_FORECAST, Exposure.TYPE_TRANSLATION);
+        typeBox.setValue(Exposure.TYPE_RECEIVABLE);
+        typeBox.setMaxWidth(Double.MAX_VALUE);
+
+        TextField currency = dialogField("EUR");
+        TextField amount = dialogField("0.00");
+        TextField counterparty = dialogField("optional");
+        TextField entityName = dialogField("optional");
+        DatePicker maturity = new DatePicker();
+        maturity.setMaxWidth(Double.MAX_VALUE);
+        maturity.setPromptText("optional");
+        TextField description = dialogField("optional");
+
+        Label error = new Label();
+        error.getStyleClass().add("error-label");
+        error.setWrapText(true);
+        error.setManaged(false);
+        error.setVisible(false);
+
+        Button submit = new Button("Add Exposure");
+        submit.getStyleClass().add("primary-button");
+        submit.setMaxWidth(Double.MAX_VALUE);
+
+        Button cancel = new Button("Cancel");
+        cancel.getStyleClass().add("link-text");
+        cancel.setMaxWidth(Double.MAX_VALUE);
+
+        Label title = new Label("New Exposure");
+        title.getStyleClass().add("dialog-title");
+
+        VBox form = new VBox(12);
+        form.getStyleClass().add("dialog-form");
+        form.setPrefWidth(360);
+        form.getChildren().addAll(
+                title,
+                labeledControl("TYPE", typeBox),
+                labeledControl("CURRENCY", currency),
+                labeledControl("AMOUNT", amount),
+                labeledControl("COUNTERPARTY", counterparty),
+                labeledControl("ENTITY / SUBSIDIARY", entityName),
+                labeledControl("MATURITY DATE", maturity),
+                labeledControl("DESCRIPTION", description),
+                error,
+                submit,
+                cancel);
+
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.initOwner(contentArea.getScene().getWindow());
+        dialog.setTitle("New Exposure");
+
+        cancel.setOnAction(e -> dialog.close());
+
+        submit.setOnAction(e -> {
+            error.setManaged(false);
+            error.setVisible(false);
+
+            String currencyCode = currency.getText().trim();
+            if (currencyCode.isEmpty()) {
+                showDialogError(error, "Currency is required.");
+                return;
+            }
+
+            BigDecimal amountVal;
+            try {
+                amountVal = new BigDecimal(amount.getText().trim());
+            } catch (NumberFormatException ex) {
+                showDialogError(error, "Amount must be a valid number.");
+                return;
+            }
+            if (amountVal.signum() <= 0) {
+                showDialogError(error, "Amount must be greater than zero.");
+                return;
+            }
+
+            CreateExposureRequestDTO request = new CreateExposureRequestDTO();
+            request.setType(typeBox.getValue());
+            request.setCurrency(currencyCode);
+            request.setAmount(amountVal);
+            request.setCounterparty(emptyToNull(counterparty.getText()));
+            request.setEntityName(emptyToNull(entityName.getText()));
+            LocalDate maturityDate = maturity.getValue();
+            request.setMaturityDate(maturityDate);
+            request.setValueDate(LocalDate.now());
+            request.setDescription(emptyToNull(description.getText()));
+
+            submit.setDisable(true);
+            Thread t = new Thread(() -> {
+                try {
+                    exposureService.createExposure(userId, request);
+                    Platform.runLater(() -> {
+                        dialog.close();
+                        showExposures();
+                    });
+                } catch (Exception ex) {
+                    Platform.runLater(() -> {
+                        showDialogError(error, "Could not add exposure: " + ex.getMessage());
+                        submit.setDisable(false);
+                    });
+                }
+            }, "create-exposure");
+            t.setDaemon(true);
+            t.start();
+        });
+
+        Scene scene = new Scene(form);
+        scene.getStylesheets().add(
+                getClass().getResource("/css/styles.css").toExternalForm());
+        dialog.setScene(scene);
+        dialog.setResizable(false);
+        dialog.showAndWait();
+    }
+
+    private String emptyToNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     @FXML
