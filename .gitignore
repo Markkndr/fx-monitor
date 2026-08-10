@@ -27,6 +27,9 @@ Thumbs.db
 .env
 *.local
 
+# Local Spring config (use application.yml.example as a template)
+fx-monitor/src/main/resources/application.yml
+
 # Claude Code artifacts
 MEMORY.md
 .claude/memory/
