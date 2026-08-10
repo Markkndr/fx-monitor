@@ -3,7 +3,9 @@ package com.currencyexchange.service;
 import com.currencyexchange.dto.exchange.ExchangeRateDTO;
 import com.currencyexchange.dto.statistics.CurrencyExposureDTO;
 import com.currencyexchange.dto.statistics.PortfolioStatisticsDTO;
+import com.currencyexchange.entity.Exposure;
 import com.currencyexchange.entity.Wallet;
+import com.currencyexchange.repository.ExposureRepository;
 import com.currencyexchange.repository.WalletRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +24,10 @@ import java.util.TreeMap;
  *
  * <p>Two of the calculations from the statistics roadmap are covered here:
  * <ul>
- *   <li><b>Netting &amp; aggregation</b> — wallet balances are summed per currency
- *       to produce a single net position for each currency held.</li>
+ *   <li><b>Netting &amp; aggregation</b> — wallet cash balances and open
+ *       {@link Exposure} positions are summed per currency to produce a single net
+ *       position for each currency. Wallets and asset-side exposures (receivables,
+ *       cash, forecasts, …) add to the position; payables subtract from it.</li>
  *   <li><b>Valuation in home currency</b> — each net position is converted to the
  *       chosen home currency using the latest spot rates from
  *       {@link ExchangeRateService}, and the per-currency values are summed into a
@@ -45,19 +49,29 @@ public class PortfolioStatisticsService {
     private WalletRepository walletRepository;
 
     @Autowired
+    private ExposureRepository exposureRepository;
+
+    @Autowired
     private ExchangeRateService exchangeRateService;
 
     @Transactional(readOnly = true)
     public PortfolioStatisticsDTO getPortfolioStatistics(Long userId, String homeCurrency) {
         String home = normaliseCurrency(homeCurrency);
 
-        // Netting & aggregation: collapse every wallet into one net position per currency.
+        // Netting & aggregation: collapse wallets and open exposures into one net
+        // position per currency. Wallet cash and asset-side exposures add; payables
+        // subtract (via Exposure#getSignedAmount).
         Map<String, BigDecimal> balanceByCurrency = new TreeMap<>();
         Map<String, BigDecimal> reservedByCurrency = new TreeMap<>();
         for (Wallet wallet : walletRepository.findByUserId(userId)) {
             String currency = wallet.getCurrency().toUpperCase();
             balanceByCurrency.merge(currency, nullToZero(wallet.getBalance()), BigDecimal::add);
             reservedByCurrency.merge(currency, nullToZero(wallet.getReservedAmount()), BigDecimal::add);
+        }
+        for (Exposure exposure : exposureRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
+                userId, Exposure.STATUS_OPEN)) {
+            String currency = exposure.getCurrency().toUpperCase();
+            balanceByCurrency.merge(currency, exposure.getSignedAmount(), BigDecimal::add);
         }
 
         if (balanceByCurrency.isEmpty()) {

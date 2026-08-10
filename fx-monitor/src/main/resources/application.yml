@@ -38,6 +38,11 @@ forex:
     key: ${FOREX_API_KEY:}
     update-interval: 3600 # 1 hour
     timeout: 5000
+  # Historical rate storage: which pairs to snapshot and how often (seconds).
+  snapshot:
+    base: USD
+    currencies: EUR,GBP,JPY,CNY,CHF,CAD,AUD
+    interval: 3600 # 1 hour
 
 # Platform Fee Configuration
 platform:
