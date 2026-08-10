@@ -3,7 +3,9 @@ package com.currencyexchange.service;
 import com.currencyexchange.dto.exchange.ExchangeRateDTO;
 import com.currencyexchange.dto.statistics.CurrencyExposureDTO;
 import com.currencyexchange.dto.statistics.PortfolioStatisticsDTO;
+import com.currencyexchange.entity.Exposure;
 import com.currencyexchange.entity.Wallet;
+import com.currencyexchange.repository.ExposureRepository;
 import com.currencyexchange.repository.WalletRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,9 @@ class PortfolioStatisticsServiceTest {
     private WalletRepository walletRepository;
 
     @Mock
+    private ExposureRepository exposureRepository;
+
+    @Mock
     private ExchangeRateService exchangeRateService;
 
     @InjectMocks
@@ -43,6 +48,15 @@ class PortfolioStatisticsServiceTest {
         w.setBalance(new BigDecimal(balance));
         w.setReservedAmount(new BigDecimal(reserved));
         return w;
+    }
+
+    private Exposure exposure(String type, String currency, String amount) {
+        Exposure e = new Exposure();
+        e.setType(type);
+        e.setCurrency(currency);
+        e.setAmount(new BigDecimal(amount));
+        e.setStatus(Exposure.STATUS_OPEN);
+        return e;
     }
 
     private ExchangeRateDTO rates(Map<String, BigDecimal> rates) {
@@ -77,6 +91,29 @@ class PortfolioStatisticsServiceTest {
         CurrencyExposureDTO eur = exposureFor(stats, "EUR");
         assertThat(eur.getValueInHome()).isEqualByComparingTo("1000.00");
         assertThat(eur.getPercentOfPortfolio()).isEqualByComparingTo("40.00");
+    }
+
+    @Test
+    @DisplayName("nets open exposures into the currency position: receivables add, payables subtract")
+    void netsExposuresWithWallets() {
+        when(walletRepository.findByUserId(USER_ID)).thenReturn(List.of(
+                wallet("USD", "1000.00", "0.00"),
+                wallet("EUR", "920.00", "0.00")));
+        when(exposureRepository.findByUserIdAndStatusOrderByCreatedAtDesc(USER_ID, "OPEN"))
+                .thenReturn(List.of(
+                        exposure(Exposure.TYPE_RECEIVABLE, "EUR", "460.00"),
+                        exposure(Exposure.TYPE_PAYABLE, "EUR", "230.00")));
+        when(exchangeRateService.getRates("USD")).thenReturn(
+                rates(Map.of("EUR", new BigDecimal("0.92"))));
+
+        PortfolioStatisticsDTO stats = portfolioStatisticsService.getPortfolioStatistics(USER_ID, "USD");
+
+        // EUR net = 920 cash + 460 receivable - 230 payable = 1150; valued at 0.92 -> 1250
+        CurrencyExposureDTO eur = exposureFor(stats, "EUR");
+        assertThat(eur.getNetExposure()).isEqualByComparingTo("1150.00");
+        assertThat(eur.getValueInHome()).isEqualByComparingTo("1250.00");
+        // USD 1000 + EUR 1250 = 2250
+        assertThat(stats.getTotalValueInHome()).isEqualByComparingTo("2250.00");
     }
 
     @Test
