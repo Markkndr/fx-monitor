@@ -43,6 +43,9 @@ forex:
     base: USD
     currencies: EUR,GBP,JPY,CNY,CHF,CAD,AUD
     interval: 3600 # 1 hour
+  alert:
+    # How often active rate alerts are re-evaluated against live quotes (seconds).
+    interval: 900 # 15 minutes
 
 # Platform Fee Configuration
 platform:
