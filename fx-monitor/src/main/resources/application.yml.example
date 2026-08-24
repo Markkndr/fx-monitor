@@ -22,26 +22,30 @@ spring:
 
   security:
     jwt:
+      # Provide JWT_SECRET via environment variable in any real deployment.
+      # The fallback below is for local development only and must be >= 256 bits for HS512.
       secret: ${JWT_SECRET:dev-only-insecure-secret-change-me-make-it-long-and-secure-at-least-256-bits}
-      expiration: 900000
-      refresh-expiration: 604800000
+      expiration: 900000 # 15-minute Access Token
+      refresh-expiration: 604800000 # 7-day Refresh Token
 
 server:
   port: 8080
 
+# Forex API Configuration
 forex:
   api:
     url: https://api.exchangerate-api.com/v4/latest
     key: ${FOREX_API_KEY:}
-    update-interval: 3600
+    update-interval: 3600 # 1 hour
     timeout: 5000
+  # Historical rate storage: which pairs to snapshot and how often (seconds).
   snapshot:
     base: USD
     currencies: EUR,GBP,JPY,CNY,CHF,CAD,AUD
-    interval: 3600
+    interval: 3600 # 1 hour
   alert:
-    # How often (seconds) active rate alerts are re-evaluated against live quotes.
-    interval: 900
+    # How often active rate alerts are re-evaluated against live quotes (seconds).
+    interval: 900 # 15 minutes
 
 # Platform Fee Configuration
 platform:
