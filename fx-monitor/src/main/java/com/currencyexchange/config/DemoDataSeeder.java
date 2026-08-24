@@ -1,10 +1,14 @@
 package com.currencyexchange.config;
 
 import com.currencyexchange.entity.Exposure;
+import com.currencyexchange.entity.Hedge;
+import com.currencyexchange.entity.RateAlert;
 import com.currencyexchange.entity.Transaction;
 import com.currencyexchange.entity.User;
 import com.currencyexchange.entity.Wallet;
 import com.currencyexchange.repository.ExposureRepository;
+import com.currencyexchange.repository.HedgeRepository;
+import com.currencyexchange.repository.RateAlertRepository;
 import com.currencyexchange.repository.TransactionRepository;
 import com.currencyexchange.repository.UserRepository;
 import com.currencyexchange.repository.WalletRepository;
@@ -49,17 +53,23 @@ public class DemoDataSeeder implements CommandLineRunner {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final ExposureRepository exposureRepository;
+    private final HedgeRepository hedgeRepository;
+    private final RateAlertRepository rateAlertRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DemoDataSeeder(UserRepository userRepository,
                           WalletRepository walletRepository,
                           TransactionRepository transactionRepository,
                           ExposureRepository exposureRepository,
+                          HedgeRepository hedgeRepository,
+                          RateAlertRepository rateAlertRepository,
                           PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.exposureRepository = exposureRepository;
+        this.hedgeRepository = hedgeRepository;
+        this.rateAlertRepository = rateAlertRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -92,7 +102,7 @@ public class DemoDataSeeder implements CommandLineRunner {
         // FX exposures: the treasury positions that carry currency risk. A mix of
         // receivables/payables/cash/forecast/translation across EUR, GBP and JPY so
         // the net-exposure netting and the Exposures tab have something to show.
-        seedExposure(user, Exposure.TYPE_RECEIVABLE, "EUR", "60000.00",
+        Exposure eurReceivable = seedExposure(user, Exposure.TYPE_RECEIVABLE, "EUR", "60000.00",
                 "Müller GmbH", "DE Subsidiary", 40, Exposure.STATUS_OPEN, "AR — invoice #4821");
         seedExposure(user, Exposure.TYPE_PAYABLE, "EUR", "22000.00",
                 "Bosch Zulieferer", "DE Subsidiary", 25, Exposure.STATUS_OPEN, "AP — component supply");
@@ -100,16 +110,31 @@ public class DemoDataSeeder implements CommandLineRunner {
                 "Frankfurt operating account", "DE Subsidiary", null, Exposure.STATUS_OPEN, "EUR cash on hand");
         seedExposure(user, Exposure.TYPE_TRANSLATION, "EUR", "25000.00",
                 null, "DE Subsidiary", null, Exposure.STATUS_OPEN, "Subsidiary equity translation");
-        seedExposure(user, Exposure.TYPE_RECEIVABLE, "GBP", "35000.00",
+        Exposure gbpReceivable = seedExposure(user, Exposure.TYPE_RECEIVABLE, "GBP", "35000.00",
                 "London Partners Ltd", "UK Branch", 55, Exposure.STATUS_OPEN, "AR — services Q3");
         seedExposure(user, Exposure.TYPE_PAYABLE, "GBP", "8000.00",
                 "UK Logistics", "UK Branch", 18, Exposure.STATUS_OPEN, "AP — freight");
-        seedExposure(user, Exposure.TYPE_FORECAST, "JPY", "5000000.00",
+        Exposure jpyForecast = seedExposure(user, Exposure.TYPE_FORECAST, "JPY", "5000000.00",
                 "Forecast JP sales", "JP Branch", 90, Exposure.STATUS_OPEN, "Q4 forecast inflow");
         seedExposure(user, Exposure.TYPE_RECEIVABLE, "EUR", "18000.00",
                 "Adler AG", "DE Subsidiary", -5, Exposure.STATUS_SETTLED, "AR — settled invoice #4770");
 
-        log.info("Seeded demo account {} with {} wallets, a transaction history, and FX exposures.",
+        // Hedges covering the receivables/forecast: forwards that lock the sale of the
+        // foreign currency, plus a protective put. Linked to their exposures so the
+        // hedge ratio and effectiveness show up.
+        seedForward(user, eurReceivable, Hedge.DIRECTION_SELL, "EUR", "USD", "50000.00", "1.085000", 40,
+                "Forward sale hedging the Müller receivable");
+        seedForward(user, gbpReceivable, Hedge.DIRECTION_SELL, "GBP", "USD", "30000.00", "1.270000", 55,
+                "Forward sale hedging the London AR");
+        seedOption(user, jpyForecast, Hedge.OPTION_PUT, "JPY", "USD", "5000000.00", "0.006700", "1200.00", 90,
+                "USD/JPY put protecting the Q4 forecast inflow");
+
+        // Rate alerts: threshold triggers the treasury desk watches.
+        seedAlert(user, "USD", "EUR", RateAlert.DIRECTION_ABOVE, "0.960000", "EUR weakness — good level to add hedges");
+        seedAlert(user, "USD", "GBP", RateAlert.DIRECTION_BELOW, "0.760000", "GBP strength — review UK receivable hedge");
+        seedAlert(user, "USD", "JPY", RateAlert.DIRECTION_ABOVE, "155.000000", "JPY breaching 155 — forecast at risk");
+
+        log.info("Seeded demo account {} with {} wallets, a transaction history, FX exposures, hedges and alerts.",
                 DEMO_EMAIL, 5);
         log.info("Log in with  {} / {}", DEMO_EMAIL, DEMO_PASSWORD);
     }
@@ -144,9 +169,9 @@ public class DemoDataSeeder implements CommandLineRunner {
      * positions without a settlement date (cash, translation); a negative value
      * backdates the maturity so a SETTLED position reads as already matured.
      */
-    private void seedExposure(User user, String type, String currency, String amount,
-                              String counterparty, String entityName, Integer maturityInDays,
-                              String status, String description) {
+    private Exposure seedExposure(User user, String type, String currency, String amount,
+                                  String counterparty, String entityName, Integer maturityInDays,
+                                  String status, String description) {
         Exposure exposure = new Exposure();
         exposure.setUser(user);
         exposure.setType(type);
@@ -158,7 +183,58 @@ public class DemoDataSeeder implements CommandLineRunner {
         exposure.setMaturityDate(maturityInDays != null ? LocalDate.now().plusDays(maturityInDays) : null);
         exposure.setStatus(status);
         exposure.setDescription(description);
-        exposureRepository.save(exposure);
+        return exposureRepository.save(exposure);
+    }
+
+    /** Books a demo forward contract, optionally linked to the exposure it covers. */
+    private void seedForward(User user, Exposure exposure, String direction, String base, String quote,
+                             String notional, String contractRate, int maturityInDays, String description) {
+        Hedge hedge = baseHedge(user, exposure, Hedge.INSTRUMENT_FORWARD, direction, base, quote,
+                notional, contractRate, maturityInDays, description);
+        hedgeRepository.save(hedge);
+    }
+
+    /** Books a demo option (bought protection), optionally linked to the exposure it covers. */
+    private void seedOption(User user, Exposure exposure, String optionType, String base, String quote,
+                            String notional, String strike, String premium, int maturityInDays, String description) {
+        // A bought option protecting a receivable/forecast sits on the SELL side of the base currency.
+        Hedge hedge = baseHedge(user, exposure, Hedge.INSTRUMENT_OPTION, Hedge.DIRECTION_SELL, base, quote,
+                notional, strike, maturityInDays, description);
+        hedge.setOptionType(optionType);
+        hedge.setPremium(new BigDecimal(premium));
+        hedgeRepository.save(hedge);
+    }
+
+    private Hedge baseHedge(User user, Exposure exposure, String instrumentType, String direction,
+                            String base, String quote, String notional, String contractRate,
+                            int maturityInDays, String description) {
+        Hedge hedge = new Hedge();
+        hedge.setUser(user);
+        hedge.setExposure(exposure);
+        hedge.setInstrumentType(instrumentType);
+        hedge.setDirection(direction);
+        hedge.setBaseCurrency(base);
+        hedge.setQuoteCurrency(quote);
+        hedge.setNotional(new BigDecimal(notional));
+        hedge.setContractRate(new BigDecimal(contractRate));
+        hedge.setTradeDate(LocalDate.now().minusDays(10));
+        hedge.setMaturityDate(LocalDate.now().plusDays(maturityInDays));
+        hedge.setStatus(Hedge.STATUS_OPEN);
+        hedge.setDescription(description);
+        return hedge;
+    }
+
+    private void seedAlert(User user, String base, String quote, String direction,
+                           String threshold, String note) {
+        RateAlert alert = new RateAlert();
+        alert.setUser(user);
+        alert.setBase(base);
+        alert.setQuote(quote);
+        alert.setDirection(direction);
+        alert.setThreshold(new BigDecimal(threshold));
+        alert.setStatus(RateAlert.STATUS_ACTIVE);
+        alert.setNote(note);
+        rateAlertRepository.save(alert);
     }
 
     private void deposit(User user, Wallet to, String amount, int daysAgo, String description) {

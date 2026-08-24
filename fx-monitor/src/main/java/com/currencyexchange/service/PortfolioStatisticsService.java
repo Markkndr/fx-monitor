@@ -54,6 +54,25 @@ public class PortfolioStatisticsService {
     @Autowired
     private ExchangeRateService exchangeRateService;
 
+    /**
+     * The user's net signed position per currency: wallet cash and asset-side
+     * exposures add, payables subtract. This is the raw input the analytics services
+     * (scenario, stress, attribution, VaR) revalue under different rate assumptions.
+     * Amounts are in each position's own currency, not yet converted to a home currency.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, BigDecimal> netExposureByCurrency(Long userId) {
+        Map<String, BigDecimal> net = new TreeMap<>();
+        for (Wallet wallet : walletRepository.findByUserId(userId)) {
+            net.merge(wallet.getCurrency().toUpperCase(), nullToZero(wallet.getBalance()), BigDecimal::add);
+        }
+        for (Exposure exposure : exposureRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
+                userId, Exposure.STATUS_OPEN)) {
+            net.merge(exposure.getCurrency().toUpperCase(), exposure.getSignedAmount(), BigDecimal::add);
+        }
+        return net;
+    }
+
     @Transactional(readOnly = true)
     public PortfolioStatisticsDTO getPortfolioStatistics(Long userId, String homeCurrency) {
         String home = normaliseCurrency(homeCurrency);

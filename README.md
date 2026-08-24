@@ -180,10 +180,14 @@ The foundational layer is in place. Implemented so far:
 - 📊 **Portfolio statistics** — net exposure per currency (netting & aggregation) valued in a home currency via live rates, exposed at `/api/statistics/portfolio` with a statistics dashboard tab showing total portfolio value and each currency's share
 - 🛡️ **Security layer** — Spring Security with a JWT authentication filter and token provider
 - 💱 **Live exchange rates** — external rate-feed integration (exchangerate-api.com) with caching and a `/api/exchange-rates` API
-- 🖥️ **Desktop UI** — a JavaFX front-end (login, register, dashboard with wallet, live-rate, transaction-history, and statistics tabs) that calls the service layer in-process
+- 📉 **Historical rates** — periodic rate snapshots persisted to a queryable time series (`/api/exchange-rates/{base}/history/{quote}`)
+- 🔔 **Rate alerts** — user-defined ABOVE/BELOW thresholds on any pair, evaluated on a schedule against live quotes and fired once until re-armed (`/api/alerts`)
+- 🛡️ **Hedging** — forward and option instruments, optionally linked to the exposure they cover, marked to market with unrealised P&L, hedge ratio, and a dollar-offset effectiveness measure (`/api/hedges`)
+- 🔬 **Advanced analytics** — scenario analysis, a standard stress-test battery, FX P&L attribution, and historical-simulation Value at Risk (`/api/analytics`)
+- 🖥️ **Desktop UI** — a JavaFX front-end (login, register, dashboard with wallet, live-rate, transaction-history, statistics, and exposures tabs) that calls the service layer in-process
 - 🗄️ **Persistence** — Spring Data JPA repositories over an embedded H2 database (a PostgreSQL driver is bundled for a future server deployment)
 
-The first slice of **exposure tracking** (net exposure & home-currency valuation) has landed; hedging, multi-provider rate feeds, and the advanced-analytics phases described in the [roadmap](#-roadmap) are the next milestones.
+Exposure tracking, FX rate integration, hedging management, and the advanced-analytics phase from the [roadmap](#-roadmap) have all landed. Reporting & polish (executive dashboards, PDF/Excel export, compliance reporting) is the next milestone.
 
 > 📝 Note: the current data model began as a wallet/exchange foundation; the entities will evolve toward the treasury-exposure model (positions, hedges, forward contracts) as Phase 1 lands.
 
@@ -220,7 +224,45 @@ The first slice of **exposure tracking** (net exposure & home-currency valuation
 |--------|----------|-------------|
 | `GET` | `/portfolio` | Net exposure per currency and total portfolio value, valued in `?home=` (defaults to USD) |
 
-> All `/api/transactions` and `/api/statistics` endpoints are scoped to the authenticated user — a user can only ever see their own data.
+### Implemented API — `/api/exposures`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | List the caller's exposures (optional `?type=` filter) |
+| `GET` | `/{id}` | Get one of the caller's exposures |
+| `POST` | `/` | Book a new exposure |
+| `PUT` | `/{id}/status` | Update an exposure's lifecycle status (`?status=`) |
+
+### Implemented API — `/api/alerts`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | List the caller's rate alerts |
+| `GET` | `/{id}` | Get one of the caller's alerts |
+| `POST` | `/` | Create an ABOVE/BELOW threshold alert on a pair |
+| `POST` | `/{id}/rearm` | Re-arm a triggered alert |
+| `DELETE` | `/{id}` | Delete an alert |
+
+### Implemented API — `/api/hedges`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | List the caller's hedges, each marked to market (optional `?exposureId=`) |
+| `GET` | `/{id}` | Get one hedge with its valuation |
+| `POST` | `/` | Book a forward or option, optionally linked to an exposure |
+| `PUT` | `/{id}/status` | Update a hedge's status (`?status=`) |
+| `DELETE` | `/{id}` | Delete a hedge |
+
+### Implemented API — `/api/analytics`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/scenario` | Revalue the portfolio under a supplied set of rate shocks |
+| `GET` | `/stress` | Run the standard adverse stress-test battery (`?home=`) |
+| `GET` | `/attribution` | FX P&L attribution over `?lookbackDays=` from stored rate history |
+| `GET` | `/var` | Historical-simulation Value at Risk (`?home=&confidence=&lookbackDays=`) |
+
+> All `/api/transactions`, `/api/statistics`, `/api/exposures`, `/api/alerts`, `/api/hedges`, and `/api/analytics` endpoints are scoped to the authenticated user — a user can only ever see their own data.
 
 ---
 
