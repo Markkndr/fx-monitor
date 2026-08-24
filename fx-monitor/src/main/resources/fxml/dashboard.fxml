@@ -20,10 +20,16 @@
                     alignment="CENTER_LEFT" onAction="#showWallets"/>
             <Button text="  Exposures" styleClass="nav-button" maxWidth="Infinity"
                     alignment="CENTER_LEFT" onAction="#showExposures"/>
+            <Button text="  Hedges" styleClass="nav-button" maxWidth="Infinity"
+                    alignment="CENTER_LEFT" onAction="#showHedges"/>
+            <Button text="  Alerts" styleClass="nav-button" maxWidth="Infinity"
+                    alignment="CENTER_LEFT" onAction="#showAlerts"/>
             <Button text="  Transactions" styleClass="nav-button" maxWidth="Infinity"
                     alignment="CENTER_LEFT" onAction="#showTransactions"/>
             <Button text="  Statistics" styleClass="nav-button" maxWidth="Infinity"
                     alignment="CENTER_LEFT" onAction="#showStatistics"/>
+            <Button text="  Analytics" styleClass="nav-button" maxWidth="Infinity"
+                    alignment="CENTER_LEFT" onAction="#showAnalytics"/>
             <Button text="  Profile" styleClass="nav-button" maxWidth="Infinity"
                     alignment="CENTER_LEFT" onAction="#showProfile"/>
         </VBox>
