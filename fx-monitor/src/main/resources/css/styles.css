@@ -381,6 +381,61 @@
     -fx-text-fill: #ed4245;
 }
 
+/* Alert / hedge status badges */
+.txn-status-active,
+.txn-status-open {
+    -fx-background-color: #1f4a36;
+    -fx-text-fill: #57f287;
+}
+
+.txn-status-triggered {
+    -fx-background-color: #4a3b1f;
+    -fx-text-fill: #faa61a;
+}
+
+.txn-status-disabled,
+.txn-status-closed {
+    -fx-background-color: #3a3d42;
+    -fx-text-fill: #a0a3a8;
+}
+
+.txn-status-expired {
+    -fx-background-color: #4a1f23;
+    -fx-text-fill: #ed4245;
+}
+
+/* Instrument / direction badges */
+.txn-type-forward {
+    -fx-background-color: #3b3f6b;
+    -fx-text-fill: #b0b7ff;
+}
+
+.txn-type-option {
+    -fx-background-color: #1f3f4a;
+    -fx-text-fill: #5ad1f4;
+}
+
+.txn-type-buy {
+    -fx-background-color: #1f4a36;
+    -fx-text-fill: #57f287;
+}
+
+.txn-type-sell {
+    -fx-background-color: #4a3b1f;
+    -fx-text-fill: #faa61a;
+}
+
+/* P&L value coloring */
+.pnl-positive {
+    -fx-text-fill: #57f287;
+    -fx-font-weight: bold;
+}
+
+.pnl-negative {
+    -fx-text-fill: #ed4245;
+    -fx-font-weight: bold;
+}
+
 /* ===== New Transaction Dialog ===== */
 .dialog-form {
     -fx-background-color: #2c2f33;

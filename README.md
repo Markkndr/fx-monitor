@@ -184,7 +184,7 @@ The foundational layer is in place. Implemented so far:
 - 🔔 **Rate alerts** — user-defined ABOVE/BELOW thresholds on any pair, evaluated on a schedule against live quotes and fired once until re-armed (`/api/alerts`)
 - 🛡️ **Hedging** — forward and option instruments, optionally linked to the exposure they cover, marked to market with unrealised P&L, hedge ratio, and a dollar-offset effectiveness measure (`/api/hedges`)
 - 🔬 **Advanced analytics** — scenario analysis, a standard stress-test battery, FX P&L attribution, and historical-simulation Value at Risk (`/api/analytics`)
-- 🖥️ **Desktop UI** — a JavaFX front-end (login, register, dashboard with wallet, live-rate, transaction-history, statistics, and exposures tabs) that calls the service layer in-process
+- 🖥️ **Desktop UI** — a JavaFX front-end (login, register, dashboard with wallets, exposures, hedges, alerts, transactions, statistics, and analytics tabs) that calls the service layer in-process
 - 🗄️ **Persistence** — Spring Data JPA repositories over an embedded H2 database (a PostgreSQL driver is bundled for a future server deployment)
 
 Exposure tracking, FX rate integration, hedging management, and the advanced-analytics phase from the [roadmap](#-roadmap) have all landed. Reporting & polish (executive dashboards, PDF/Excel export, compliance reporting) is the next milestone.
