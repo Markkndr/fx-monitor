@@ -154,6 +154,7 @@ The full platform aims for the components below. **None of these are implemented
 | **Database** | H2 (embedded, file-based) |
 | **Auth** | JWT-based authentication (jjwt 0.12) + Spring Security |
 | **Live rates** | exchangerate-api.com via `RestTemplate`, cached with Spring Cache |
+| **Reporting** | Apache POI (`poi-ooxml`) for Excel `.xlsx` export |
 
 **Planned (roadmap):**
 
@@ -184,10 +185,11 @@ The foundational layer is in place. Implemented so far:
 - 🔔 **Rate alerts** — user-defined ABOVE/BELOW thresholds on any pair, evaluated on a schedule against live quotes and fired once until re-armed (`/api/alerts`)
 - 🛡️ **Hedging** — forward and option instruments, optionally linked to the exposure they cover, marked to market with unrealised P&L, hedge ratio, and a dollar-offset effectiveness measure (`/api/hedges`)
 - 🔬 **Advanced analytics** — scenario analysis, a standard stress-test battery, FX P&L attribution, and historical-simulation Value at Risk (`/api/analytics`)
+- 📑 **Excel reporting** — one-click export of the caller's portfolio to a multi-sheet `.xlsx` workbook (portfolio summary, exposures, hedges, rate history) via Apache POI (`/api/reports/export.xlsx`)
 - 🖥️ **Desktop UI** — a JavaFX front-end (login, register, dashboard with wallets, exposures, hedges, alerts, transactions, statistics, and analytics tabs) that calls the service layer in-process
 - 🗄️ **Persistence** — Spring Data JPA repositories over an embedded H2 database (a PostgreSQL driver is bundled for a future server deployment)
 
-Exposure tracking, FX rate integration, hedging management, and the advanced-analytics phase from the [roadmap](#-roadmap) have all landed. Reporting & polish (executive dashboards, PDF/Excel export, compliance reporting) is the next milestone.
+Exposure tracking, FX rate integration, hedging management, and the advanced-analytics phase from the [roadmap](#-roadmap) have all landed. The reporting & polish phase is now in progress: Excel export is done, with executive PDF dashboards and hedge-effectiveness compliance reporting still to come.
 
 > 📝 Note: the current data model began as a wallet/exchange foundation; the entities will evolve toward the treasury-exposure model (positions, hedges, forward contracts) as Phase 1 lands.
 
@@ -262,7 +264,13 @@ Exposure tracking, FX rate integration, hedging management, and the advanced-ana
 | `GET` | `/attribution` | FX P&L attribution over `?lookbackDays=` from stored rate history |
 | `GET` | `/var` | Historical-simulation Value at Risk (`?home=&confidence=&lookbackDays=`) |
 
-> All `/api/transactions`, `/api/statistics`, `/api/exposures`, `/api/alerts`, `/api/hedges`, and `/api/analytics` endpoints are scoped to the authenticated user — a user can only ever see their own data.
+### Implemented API — `/api/reports`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/export.xlsx` | Download the caller's portfolio as a multi-sheet Excel workbook, valued in `?home=` (defaults to USD) |
+
+> All `/api/transactions`, `/api/statistics`, `/api/exposures`, `/api/alerts`, `/api/hedges`, `/api/analytics`, and `/api/reports` endpoints are scoped to the authenticated user — a user can only ever see their own data.
 
 ---
 
@@ -303,7 +311,7 @@ currency-exchange-platform/
 │       ├── java/com/currencyexchange/
 │       │   ├── config/         # Security & RestTemplate configuration
 │       │   ├── controller/     # REST controllers (Auth, ExchangeRate, Transaction,
-│       │   │                   #   Statistics, Exposure, Alert, Hedge, Analytics)
+│       │   │                   #   Statistics, Exposure, Alert, Hedge, Analytics, Report)
 │       │   ├── dto/            # Request/response DTOs (auth, exchange, transactions,
 │       │   │                   #   statistics, exposures, alerts, hedges, analytics)
 │       │   ├── entity/         # User, Wallet, Transaction, Exposure, RateSnapshot,
@@ -312,8 +320,8 @@ currency-exchange-platform/
 │       │   ├── repository/     # JPA repositories
 │       │   ├── security/       # JWT filter & token provider
 │       │   ├── service/        # Auth, user, exchange-rate, transaction, portfolio-statistics,
-│       │   │                   #   exposure, rate-snapshot, rate-alert, hedge, scenario-analysis
-│       │   │                   #   & risk-metrics services
+│       │   │                   #   exposure, rate-snapshot, rate-alert, hedge, scenario-analysis,
+│       │   │                   #   risk-metrics & excel-report services
 │       │   └── ui/             # JavaFX app, controllers & view helpers
 │       └── resources/
 │           ├── fxml/           # JavaFX view layouts
