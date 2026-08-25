@@ -302,13 +302,18 @@ currency-exchange-platform/
 │   └── src/main/
 │       ├── java/com/currencyexchange/
 │       │   ├── config/         # Security & RestTemplate configuration
-│       │   ├── controller/     # REST controllers (Auth, ExchangeRate, Transaction, Statistics)
-│       │   ├── dto/            # Request/response DTOs
-│       │   ├── entity/         # User, Wallet, Transaction
+│       │   ├── controller/     # REST controllers (Auth, ExchangeRate, Transaction,
+│       │   │                   #   Statistics, Exposure, Alert, Hedge, Analytics)
+│       │   ├── dto/            # Request/response DTOs (auth, exchange, transactions,
+│       │   │                   #   statistics, exposures, alerts, hedges, analytics)
+│       │   ├── entity/         # User, Wallet, Transaction, Exposure, RateSnapshot,
+│       │   │                   #   RateAlert, Hedge
 │       │   ├── exception/      # Domain-specific exceptions
 │       │   ├── repository/     # JPA repositories
 │       │   ├── security/       # JWT filter & token provider
-│       │   ├── service/        # Auth, user, exchange-rate, transaction & portfolio-statistics services
+│       │   ├── service/        # Auth, user, exchange-rate, transaction, portfolio-statistics,
+│       │   │                   #   exposure, rate-snapshot, rate-alert, hedge, scenario-analysis
+│       │   │                   #   & risk-metrics services
 │       │   └── ui/             # JavaFX app, controllers & view helpers
 │       └── resources/
 │           ├── fxml/           # JavaFX view layouts
