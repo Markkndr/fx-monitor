@@ -113,6 +113,13 @@
             <version>5.4.1</version>
         </dependency>
 
+        <!-- PDF report generation (LGPL/MPL fork of iText 4) -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>1.4.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
