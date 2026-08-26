@@ -1,6 +1,7 @@
 package com.currencyexchange.controller;
 
 import com.currencyexchange.entity.User;
+import com.currencyexchange.service.ComplianceReportService;
 import com.currencyexchange.service.ExcelReportService;
 import com.currencyexchange.service.PdfReportService;
 import com.currencyexchange.service.UserService;
@@ -19,8 +20,9 @@ import java.time.LocalDate;
 
 /**
  * Report generation endpoints. Exposes a multi-sheet Excel export of the caller's
- * portfolio (summary, exposures, hedges, and rate history) and an executive-summary
- * PDF. Scoped to the authenticated user — a user can only export their own data.
+ * portfolio (summary, exposures, hedges, and rate history), an executive-summary PDF,
+ * and a hedge-effectiveness compliance PDF. Scoped to the authenticated user — a user
+ * can only export their own data.
  */
 @RestController
 @RequestMapping("/api/reports")
@@ -35,6 +37,9 @@ public class ReportController {
 
     @Autowired
     private PdfReportService pdfReportService;
+
+    @Autowired
+    private ComplianceReportService complianceReportService;
 
     @Autowired
     private UserService userService;
@@ -68,6 +73,24 @@ public class ReportController {
 
         byte[] pdf = pdfReportService.generateExecutiveSummary(userId, home);
         String filename = "fx-executive-summary-" + LocalDate.now() + ".pdf";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(pdf);
+    }
+
+    /** Download the caller's hedge-effectiveness compliance report as a PDF, valued in {@code home}. */
+    @GetMapping("/compliance.pdf")
+    public ResponseEntity<byte[]> exportCompliancePdf(
+            @RequestParam(required = false, defaultValue = "USD") String home,
+            Authentication authentication) {
+
+        Long userId = currentUserId(authentication);
+        log.info("Compliance PDF requested for user {} in {}", userId, home);
+
+        byte[] pdf = complianceReportService.generateComplianceReport(userId, home);
+        String filename = "fx-compliance-report-" + LocalDate.now() + ".pdf";
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
