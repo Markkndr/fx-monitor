@@ -30,6 +30,8 @@
                     alignment="CENTER_LEFT" onAction="#showStatistics"/>
             <Button text="  Analytics" styleClass="nav-button" maxWidth="Infinity"
                     alignment="CENTER_LEFT" onAction="#showAnalytics"/>
+            <Button text="  Reports" styleClass="nav-button" maxWidth="Infinity"
+                    alignment="CENTER_LEFT" onAction="#showReports"/>
             <Button text="  Profile" styleClass="nav-button" maxWidth="Infinity"
                     alignment="CENTER_LEFT" onAction="#showProfile"/>
         </VBox>

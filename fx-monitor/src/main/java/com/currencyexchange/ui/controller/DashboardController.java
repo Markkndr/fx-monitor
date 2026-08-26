@@ -23,9 +23,12 @@ import com.currencyexchange.entity.RateAlert;
 import com.currencyexchange.entity.Wallet;
 import com.currencyexchange.repository.WalletRepository;
 import com.currencyexchange.service.AuthService;
+import com.currencyexchange.service.ComplianceReportService;
+import com.currencyexchange.service.ExcelReportService;
 import com.currencyexchange.service.ExchangeRateService;
 import com.currencyexchange.service.ExposureService;
 import com.currencyexchange.service.HedgeService;
+import com.currencyexchange.service.PdfReportService;
 import com.currencyexchange.service.PortfolioStatisticsService;
 import com.currencyexchange.service.RateAlertService;
 import com.currencyexchange.service.RiskMetricsService;
@@ -49,6 +52,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -56,12 +60,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -87,6 +94,9 @@ public class DashboardController {
     @Autowired private RateAlertService rateAlertService;
     @Autowired private ScenarioAnalysisService scenarioAnalysisService;
     @Autowired private RiskMetricsService riskMetricsService;
+    @Autowired private ExcelReportService excelReportService;
+    @Autowired private PdfReportService pdfReportService;
+    @Autowired private ComplianceReportService complianceReportService;
     @Autowired private ApplicationContext applicationContext;
 
     @FXML private Label userNameLabel;
@@ -1187,6 +1197,123 @@ public class DashboardController {
 
         row.getChildren().addAll(currency, change, pnl);
         return row;
+    }
+
+    // ===================== Reports =====================
+
+    @FXML
+    private void showReports() {
+        pageTitle.setText("Reports");
+        contentArea.getChildren().clear();
+
+        AuthResponseDTO session = SessionManager.getSession();
+        if (session == null) return;
+
+        Label intro = mutedNote("Generate and download your portfolio and FX-risk reports. "
+                + "Figures are valued in " + HOME_CURRENCY + ".");
+
+        Label status = new Label();
+        status.getStyleClass().add("muted-text");
+        status.setWrapText(true);
+        status.setManaged(false);
+        status.setVisible(false);
+
+        VBox cards = new VBox(16);
+        cards.getChildren().addAll(
+                buildReportCard(
+                        "Portfolio Workbook (Excel)",
+                        "Multi-sheet .xlsx: portfolio summary, exposures, hedges and rate history.",
+                        "fx-portfolio-" + LocalDate.now() + ".xlsx",
+                        new FileChooser.ExtensionFilter("Excel workbook (*.xlsx)", "*.xlsx"),
+                        userId -> excelReportService.generateWorkbook(userId, HOME_CURRENCY),
+                        status),
+                buildReportCard(
+                        "Executive Summary (PDF)",
+                        "One-page FX risk summary: snapshot, exposures, hedging, VaR, P&L attribution and stress tests.",
+                        "fx-executive-summary-" + LocalDate.now() + ".pdf",
+                        new FileChooser.ExtensionFilter("PDF document (*.pdf)", "*.pdf"),
+                        userId -> pdfReportService.generateExecutiveSummary(userId, HOME_CURRENCY),
+                        status),
+                buildReportCard(
+                        "Hedge Effectiveness Compliance (PDF)",
+                        "ASC 815 / IAS 39 dollar-offset test with a PASS/FAIL verdict per designated hedge.",
+                        "fx-compliance-report-" + LocalDate.now() + ".pdf",
+                        new FileChooser.ExtensionFilter("PDF document (*.pdf)", "*.pdf"),
+                        userId -> complianceReportService.generateComplianceReport(userId, HOME_CURRENCY),
+                        status));
+
+        contentArea.getChildren().addAll(intro, cards, status);
+    }
+
+    private VBox buildReportCard(String title, String description, String suggestedName,
+                                 FileChooser.ExtensionFilter filter,
+                                 Function<Long, byte[]> generator, Label status) {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("stat-summary-card");
+        card.setPadding(new Insets(20));
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("stat-summary-caption");
+
+        Label desc = new Label(description);
+        desc.getStyleClass().add("stat-summary-sub");
+        desc.setWrapText(true);
+
+        Button generate = new Button("Generate & Save");
+        generate.getStyleClass().add("action-button");
+        generate.setOnAction(e -> saveReport(suggestedName, filter, generator, generate, status));
+
+        card.getChildren().addAll(titleLabel, desc, generate);
+        return card;
+    }
+
+    /**
+     * Prompts for a save location, then generates the report off the UI thread and
+     * writes the bytes to disk. The shared status label reports progress and outcome.
+     */
+    private void saveReport(String suggestedName, FileChooser.ExtensionFilter filter,
+                            Function<Long, byte[]> generator, Button trigger, Label status) {
+        AuthResponseDTO session = SessionManager.getSession();
+        if (session == null) return;
+        Long userId = session.getUserId();
+
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Save Report");
+        chooser.setInitialFileName(suggestedName);
+        chooser.getExtensionFilters().add(filter);
+        File target = chooser.showSaveDialog(contentArea.getScene().getWindow());
+        if (target == null) {
+            return; // user cancelled
+        }
+
+        trigger.setDisable(true);
+        setReportStatus(status, "Generating " + target.getName() + "…", false);
+
+        Thread t = new Thread(() -> {
+            try {
+                byte[] bytes = generator.apply(userId);
+                Files.write(target.toPath(), bytes);
+                Platform.runLater(() -> {
+                    setReportStatus(status, "Saved " + target.getName() + " to " + target.getParent(), false);
+                    trigger.setDisable(false);
+                });
+            } catch (Exception ex) {
+                Platform.runLater(() -> {
+                    setReportStatus(status, "Could not generate report: " + ex.getMessage(), true);
+                    trigger.setDisable(false);
+                });
+            }
+        }, "report-export");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void setReportStatus(Label status, String message, boolean error) {
+        status.setText(message);
+        status.getStyleClass().removeAll("error-label", "muted-text");
+        status.getStyleClass().add(error ? "error-label" : "muted-text");
+        status.setManaged(true);
+        status.setVisible(true);
     }
 
     // ===================== Shared helpers =====================
