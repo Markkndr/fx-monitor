@@ -187,10 +187,11 @@ The foundational layer is in place. Implemented so far:
 - 🔬 **Advanced analytics** — scenario analysis, a standard stress-test battery, FX P&L attribution, and historical-simulation Value at Risk (`/api/analytics`)
 - 📑 **Excel reporting** — one-click export of the caller's portfolio to a multi-sheet `.xlsx` workbook (portfolio summary, exposures, hedges, rate history) via Apache POI (`/api/reports/export.xlsx`)
 - 📄 **Executive PDF** — a one-page FX risk executive summary (portfolio snapshot, net exposure by currency, hedging overview, Value at Risk, P&L attribution, stress-test battery) rendered with OpenPDF (`/api/reports/executive.pdf`)
+- 📋 **Compliance PDF** — a hedge-effectiveness report applying the ASC 815 / IAS 39 dollar-offset test (80–125% band) to designated hedges, with per-hedge PASS/FAIL verdicts, an overall compliance status, and an undesignated economic-hedge listing (`/api/reports/compliance.pdf`)
 - 🖥️ **Desktop UI** — a JavaFX front-end (login, register, dashboard with wallets, exposures, hedges, alerts, transactions, statistics, and analytics tabs) that calls the service layer in-process
 - 🗄️ **Persistence** — Spring Data JPA repositories over an embedded H2 database (a PostgreSQL driver is bundled for a future server deployment)
 
-Exposure tracking, FX rate integration, hedging management, and the advanced-analytics phase from the [roadmap](#-roadmap) have all landed. The reporting & polish phase is now in progress: Excel export and the executive PDF summary are done, with hedge-effectiveness compliance reporting still to come.
+Exposure tracking, FX rate integration, hedging management, the advanced-analytics phase, and the reporting & polish phase from the [roadmap](#-roadmap) have all landed — Excel export, the executive PDF summary, and hedge-effectiveness compliance reporting are all in place, surfaced through a Reports tab in the desktop UI.
 
 > 📝 Note: the current data model began as a wallet/exchange foundation; the entities will evolve toward the treasury-exposure model (positions, hedges, forward contracts) as Phase 1 lands.
 
@@ -271,6 +272,7 @@ Exposure tracking, FX rate integration, hedging management, and the advanced-ana
 |--------|----------|-------------|
 | `GET` | `/export.xlsx` | Download the caller's portfolio as a multi-sheet Excel workbook, valued in `?home=` (defaults to USD) |
 | `GET` | `/executive.pdf` | Download the caller's FX risk executive summary as a PDF, valued in `?home=` (defaults to USD) |
+| `GET` | `/compliance.pdf` | Download the caller's hedge-effectiveness compliance report as a PDF, valued in `?home=` (defaults to USD) |
 
 > All `/api/transactions`, `/api/statistics`, `/api/exposures`, `/api/alerts`, `/api/hedges`, `/api/analytics`, and `/api/reports` endpoints are scoped to the authenticated user — a user can only ever see their own data.
 
@@ -323,7 +325,7 @@ currency-exchange-platform/
 │       │   ├── security/       # JWT filter & token provider
 │       │   ├── service/        # Auth, user, exchange-rate, transaction, portfolio-statistics,
 │       │   │                   #   exposure, rate-snapshot, rate-alert, hedge, scenario-analysis,
-│       │   │                   #   risk-metrics, excel-report & pdf-report services
+│       │   │                   #   risk-metrics, excel-report, pdf-report & compliance-report services
 │       │   └── ui/             # JavaFX app, controllers & view helpers
 │       └── resources/
 │           ├── fxml/           # JavaFX view layouts
