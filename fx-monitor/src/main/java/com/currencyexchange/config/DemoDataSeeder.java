@@ -25,24 +25,29 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
- * Seeds a ready-to-demo account (user + wallets + transaction history + FX
- * exposures) on startup.
+ * Seeds ready-to-demo accounts (user + wallets + transaction history + FX
+ * exposures + hedges + alerts) on startup.
  *
  * <p>Active only under the {@code demo} Spring profile so it never touches a real
  * database during normal runs or tests. Launch with the {@code demo} profile to
- * populate the embedded H2 file DB, then log in with the credentials below.
+ * populate the embedded H2 file DB, then log in with any of the credentials below.
  *
- * <p>Idempotent: a fully-seeded demo account is left untouched, so the app can be
- * launched repeatedly without duplicating data. An <em>incomplete</em> account — one
- * left behind by an older version of this seeder, missing the exposures/hedges/alerts
- * added later — is wiped and reseeded so the demo dataset always matches this class.
+ * <p>Three accounts are seeded, each shaped to show a different compliance outcome
+ * in the hedge-effectiveness report (the dollar-offset test's 80–125% band):
  *
  * <pre>
- *   Email:    demo@fxmonitor.com
- *   Password: demo1234
+ *   demo@fxmonitor.com        · demo1234 · flagship dataset, hedges near the lower edge (~83–86%, COMPLIANT)
+ *   demo-mid@fxmonitor.com    · demo1234 · hedges centred in-band (95–110%, COMPLIANT)
+ *   demo-breach@fxmonitor.com · demo1234 · over-/under-hedged positions outside the band (REVIEW REQUIRED)
  * </pre>
+ *
+ * <p>Idempotent: a fully-seeded account is left untouched, so the app can be launched
+ * repeatedly without duplicating data. An <em>incomplete</em> account — one left behind
+ * by an older version of this seeder, missing the exposures/hedges/alerts added later —
+ * is wiped and reseeded so the demo dataset always matches this class.
  */
 @Component
 @Profile("demo")
@@ -50,6 +55,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DemoDataSeeder implements CommandLineRunner {
 
     private static final String DEMO_EMAIL = "demo@fxmonitor.com";
+    private static final String MID_EMAIL = "demo-mid@fxmonitor.com";
+    private static final String BREACH_EMAIL = "demo-breach@fxmonitor.com";
     private static final String DEMO_PASSWORD = "demo1234";
 
     private final UserRepository userRepository;
@@ -79,17 +86,37 @@ public class DemoDataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        Optional<User> existing = userRepository.findByEmail(DEMO_EMAIL);
+        seedIfNeeded(DEMO_EMAIL, this::seedPrimaryAccount);
+        seedIfNeeded(MID_EMAIL, this::seedMidBandAccount);
+        seedIfNeeded(BREACH_EMAIL, this::seedBreachAccount);
+    }
+
+    /**
+     * Seeds one account by email, unless it is already fully present. Handles the
+     * idempotency and wipe-if-incomplete logic uniformly for every demo account, then
+     * delegates the actual data build to {@code builder}.
+     */
+    private void seedIfNeeded(String email, Consumer<String> builder) {
+        Optional<User> existing = userRepository.findByEmail(email);
         if (existing.isPresent()) {
             if (isFullySeeded(existing.get())) {
-                log.info("Demo data already present for {} — skipping seed.", DEMO_EMAIL);
+                log.info("Demo data already present for {} — skipping seed.", email);
                 return;
             }
-            log.info("Demo account for {} is incomplete (older seed) — wiping and reseeding.", DEMO_EMAIL);
+            log.info("Demo account for {} is incomplete (older seed) — wiping and reseeding.", email);
             purgeDemoData(existing.get());
         }
+        builder.accept(email);
+        log.info("Log in with  {} / {}", email, DEMO_PASSWORD);
+    }
 
-        User user = seedUser();
+    /**
+     * The flagship demo account: full wallet set, a rich transaction history, and a
+     * spread of exposures/hedges/alerts. Its designated hedges sit near the lower edge
+     * of the effective band (~83–86%), so the compliance report reads COMPLIANT.
+     */
+    private void seedPrimaryAccount(String email) {
+        User user = seedUser(email, "Demo Trader");
         Wallet usd = seedWallet(user, "USD", "23500.00", "2000.00");
         Wallet eur = seedWallet(user, "EUR", "18400.50", "0.00");
         Wallet gbp = seedWallet(user, "GBP", "9750.00", "0.00");
@@ -142,9 +169,83 @@ public class DemoDataSeeder implements CommandLineRunner {
         seedAlert(user, "USD", "GBP", RateAlert.DIRECTION_BELOW, "0.760000", "GBP strength — review UK receivable hedge");
         seedAlert(user, "USD", "JPY", RateAlert.DIRECTION_ABOVE, "155.000000", "JPY breaching 155 — forecast at risk");
 
-        log.info("Seeded demo account {} with {} wallets, a transaction history, FX exposures, hedges and alerts.",
-                DEMO_EMAIL, 5);
-        log.info("Log in with  {} / {}", DEMO_EMAIL, DEMO_PASSWORD);
+        log.info("Seeded demo account {} with 5 wallets, a transaction history, FX exposures, hedges and alerts.",
+                email);
+    }
+
+    /**
+     * A "middle of the band" account: every designated hedge is sized so the
+     * dollar-offset ratio lands comfortably inside 80–125% (95%, 100%, 110%). The
+     * compliance report reads COMPLIANT, but — unlike the flagship account — the
+     * effectiveness figures sit near the centre rather than the lower edge.
+     */
+    private void seedMidBandAccount(String email) {
+        User user = seedUser(email, "Midtown Trading Co");
+        Wallet usd = seedWallet(user, "USD", "40000.00", "0.00");
+        Wallet eur = seedWallet(user, "EUR", "22000.00", "0.00");
+        Wallet gbp = seedWallet(user, "GBP", "15000.00", "0.00");
+        seedWallet(user, "JPY", "3000000.00", "0.00");
+
+        deposit(user, usd, "50000.00", 35, "Initial funding");
+        exchange(user, usd, eur, "12000.00", "11040.00", "0.920000", "60.00", 25, "USD → EUR conversion");
+        exchange(user, usd, gbp, "10000.00", "7875.00", "0.787500", "50.00", 18, "USD → GBP conversion");
+
+        // Receivables hedged at, just below, and just above par — all inside the band.
+        Exposure eurAr = seedExposure(user, Exposure.TYPE_RECEIVABLE, "EUR", "50000.00",
+                "Rhein Handel", "EU Desk", 50, Exposure.STATUS_OPEN, "AR — EUR sales");
+        Exposure gbpAr = seedExposure(user, Exposure.TYPE_RECEIVABLE, "GBP", "40000.00",
+                "Thames Trading", "UK Desk", 45, Exposure.STATUS_OPEN, "AR — GBP services");
+        Exposure jpyAr = seedExposure(user, Exposure.TYPE_RECEIVABLE, "JPY", "6000000.00",
+                "Sakura Corp", "JP Desk", 70, Exposure.STATUS_OPEN, "AR — JPY exports");
+
+        seedForward(user, eurAr, Hedge.DIRECTION_SELL, "EUR", "USD", "50000.00", "1.085000", 50,
+                "Forward sale — 100% hedge ratio");
+        seedForward(user, gbpAr, Hedge.DIRECTION_SELL, "GBP", "USD", "38000.00", "1.270000", 45,
+                "Forward sale — 95% hedge ratio");
+        seedForward(user, jpyAr, Hedge.DIRECTION_SELL, "JPY", "USD", "6600000.00", "0.006800", 70,
+                "Forward sale — 110% hedge ratio");
+
+        seedAlert(user, "USD", "EUR", RateAlert.DIRECTION_ABOVE, "0.950000", "EUR level watch");
+        seedAlert(user, "USD", "JPY", RateAlert.DIRECTION_ABOVE, "155.000000", "JPY watch");
+
+        log.info("Seeded mid-band demo account {} — hedges centred in the 80–125% band (COMPLIANT).", email);
+    }
+
+    /**
+     * A non-compliant account: it carries an over-hedged position (150% ratio) and an
+     * under-hedged one (60% ratio), both outside the 80–125% band, alongside one
+     * correctly-sized hedge. The compliance report flags REVIEW REQUIRED.
+     */
+    private void seedBreachAccount(String email) {
+        User user = seedUser(email, "Breach Demo Ltd");
+        Wallet usd = seedWallet(user, "USD", "15000.00", "0.00");
+        Wallet eur = seedWallet(user, "EUR", "9000.00", "0.00");
+        seedWallet(user, "GBP", "12000.00", "0.00");
+
+        deposit(user, usd, "20000.00", 30, "Initial funding");
+        exchange(user, usd, eur, "5000.00", "4600.00", "0.920000", "25.00", 20, "USD → EUR conversion");
+
+        // Over-hedged: notional 60k against a 40k receivable → 150% ratio → FAIL (>125%).
+        Exposure eurOver = seedExposure(user, Exposure.TYPE_RECEIVABLE, "EUR", "40000.00",
+                "Acme Overseas", "EU Desk", 45, Exposure.STATUS_OPEN, "AR — over-hedged");
+        // Under-hedged: notional 30k against a 50k receivable → 60% ratio → FAIL (<80%).
+        Exposure gbpUnder = seedExposure(user, Exposure.TYPE_RECEIVABLE, "GBP", "50000.00",
+                "Britannia Ltd", "UK Desk", 60, Exposure.STATUS_OPEN, "AR — under-hedged");
+        // Correctly sized: 30k against 30k → 100% ratio → PASS.
+        Exposure eurOk = seedExposure(user, Exposure.TYPE_RECEIVABLE, "EUR", "30000.00",
+                "Nord AG", "EU Desk", 30, Exposure.STATUS_OPEN, "AR — well hedged");
+
+        seedForward(user, eurOver, Hedge.DIRECTION_SELL, "EUR", "USD", "60000.00", "1.085000", 45,
+                "Over-hedged forward — 150% ratio");
+        seedForward(user, gbpUnder, Hedge.DIRECTION_SELL, "GBP", "USD", "30000.00", "1.270000", 60,
+                "Under-hedged forward — 60% ratio");
+        seedForward(user, eurOk, Hedge.DIRECTION_SELL, "EUR", "USD", "30000.00", "1.085000", 30,
+                "Fully hedged forward — 100% ratio");
+
+        seedAlert(user, "USD", "EUR", RateAlert.DIRECTION_ABOVE, "0.960000", "EUR weakness");
+        seedAlert(user, "USD", "GBP", RateAlert.DIRECTION_BELOW, "0.760000", "GBP strength");
+
+        log.info("Seeded breach demo account {} — 2 hedges outside the 80–125% band (REVIEW REQUIRED).", email);
     }
 
     /**
@@ -178,11 +279,11 @@ public class DemoDataSeeder implements CommandLineRunner {
         userRepository.flush();
     }
 
-    private User seedUser() {
+    private User seedUser(String email, String fullName) {
         User user = new User();
-        user.setEmail(DEMO_EMAIL);
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(DEMO_PASSWORD));
-        user.setFullName("Demo Trader");
+        user.setFullName(fullName);
         user.setPhoneNumber("+1 555 0100");
         user.setCountry("United States");
         user.setKycStatus("APPROVED");
