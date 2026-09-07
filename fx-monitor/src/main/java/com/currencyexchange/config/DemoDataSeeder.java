@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,8 +34,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * database during normal runs or tests. Launch with the {@code demo} profile to
  * populate the embedded H2 file DB, then log in with the credentials below.
  *
- * <p>Idempotent: if the demo user already exists the seeder does nothing, so the
- * app can be launched repeatedly without duplicating data.
+ * <p>Idempotent: a fully-seeded demo account is left untouched, so the app can be
+ * launched repeatedly without duplicating data. An <em>incomplete</em> account — one
+ * left behind by an older version of this seeder, missing the exposures/hedges/alerts
+ * added later — is wiped and reseeded so the demo dataset always matches this class.
  *
  * <pre>
  *   Email:    demo@fxmonitor.com
@@ -76,9 +79,14 @@ public class DemoDataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        if (userRepository.existsByEmail(DEMO_EMAIL)) {
-            log.info("Demo data already present for {} — skipping seed.", DEMO_EMAIL);
-            return;
+        Optional<User> existing = userRepository.findByEmail(DEMO_EMAIL);
+        if (existing.isPresent()) {
+            if (isFullySeeded(existing.get())) {
+                log.info("Demo data already present for {} — skipping seed.", DEMO_EMAIL);
+                return;
+            }
+            log.info("Demo account for {} is incomplete (older seed) — wiping and reseeding.", DEMO_EMAIL);
+            purgeDemoData(existing.get());
         }
 
         User user = seedUser();
@@ -137,6 +145,37 @@ public class DemoDataSeeder implements CommandLineRunner {
         log.info("Seeded demo account {} with {} wallets, a transaction history, FX exposures, hedges and alerts.",
                 DEMO_EMAIL, 5);
         log.info("Log in with  {} / {}", DEMO_EMAIL, DEMO_PASSWORD);
+    }
+
+    /**
+     * A demo account counts as fully seeded only when it carries the treasury data
+     * this seeder produces — exposures, hedges and alerts. Their absence marks an
+     * account left by an older seeder that only created the user, wallets and
+     * transactions, which we reseed rather than leave half-populated.
+     */
+    private boolean isFullySeeded(User user) {
+        Long id = user.getId();
+        return !exposureRepository.findByUserIdOrderByCreatedAtDesc(id).isEmpty()
+                && !hedgeRepository.findByUserIdOrderByCreatedAtDesc(id).isEmpty()
+                && !rateAlertRepository.findByUserIdOrderByCreatedAtDesc(id).isEmpty();
+    }
+
+    /**
+     * Deletes the demo account and everything hanging off it, children first so no
+     * foreign key is left dangling: hedges (reference exposures) and alerts, then
+     * transactions (reference wallets), then exposures, wallets, and finally the user.
+     * Flushed so the fresh insert that follows doesn't collide with the just-deleted
+     * demo email.
+     */
+    private void purgeDemoData(User user) {
+        Long id = user.getId();
+        hedgeRepository.deleteAll(hedgeRepository.findByUserIdOrderByCreatedAtDesc(id));
+        rateAlertRepository.deleteAll(rateAlertRepository.findByUserIdOrderByCreatedAtDesc(id));
+        transactionRepository.deleteAll(transactionRepository.findByUserIdOrderByCreatedAtDesc(id));
+        exposureRepository.deleteAll(exposureRepository.findByUserIdOrderByCreatedAtDesc(id));
+        walletRepository.deleteAll(walletRepository.findByUserId(id));
+        userRepository.delete(user);
+        userRepository.flush();
     }
 
     private User seedUser() {

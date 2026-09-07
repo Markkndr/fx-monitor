@@ -26,6 +26,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -141,6 +144,29 @@ class HedgeServiceTest {
         assertThat(dto.getEffectivenessPercent()).isEqualByComparingTo("100.00");
         assertThat(dto.getEffective()).isTrue();
         assertThat(dto.getMarkToMarket()).isEqualByComparingTo("5000.00");
+    }
+
+    @Test
+    @DisplayName("values many hedges on one base with a single rate fetch per base")
+    void dedupesRateFetchPerBase() {
+        Hedge eurA = forward(Hedge.DIRECTION_SELL, "100000", "1.10");
+        Hedge eurB = forward(Hedge.DIRECTION_BUY, "50000", "1.08");
+        Hedge gbp = forward(Hedge.DIRECTION_SELL, "20000", "1.25");
+        gbp.setBaseCurrency("GBP");
+
+        when(hedgeRepository.findByUserIdOrderByCreatedAtDesc(USER_ID))
+                .thenReturn(java.util.List.of(eurA, eurB, gbp));
+        when(exchangeRateService.getRates(anyString())).thenReturn(ExchangeRateDTO.builder()
+                .rates(Map.of("USD", new BigDecimal("1.05")))
+                .build());
+
+        hedgeService.getUserHedges(USER_ID);
+
+        // Three hedges across two distinct bases → the provider is hit once per base,
+        // not once per hedge. Guards the per-request rate cache in getUserHedges.
+        verify(exchangeRateService, times(1)).getRates("EUR");
+        verify(exchangeRateService, times(1)).getRates("GBP");
+        verifyNoMoreInteractions(exchangeRateService);
     }
 
     @Test
