@@ -21,7 +21,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -33,8 +34,6 @@ import java.util.List;
 @Service
 @Slf4j
 public class ExcelReportService {
-
-    private static final DateTimeFormatter TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Autowired
     private PortfolioStatisticsService portfolioStatisticsService;
@@ -66,11 +65,13 @@ public class ExcelReportService {
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             CellStyle headerStyle = headerStyle(workbook);
+            CellStyle dateStyle = dataFormatStyle(workbook, "yyyy-mm-dd");
+            CellStyle dateTimeStyle = dataFormatStyle(workbook, "yyyy-mm-dd hh:mm");
 
             writePortfolioSummary(workbook, headerStyle, userId, home);
-            writeExposures(workbook, headerStyle, userId);
-            writeHedges(workbook, headerStyle, userId);
-            writeRateHistory(workbook, headerStyle);
+            writeExposures(workbook, headerStyle, dateStyle, userId);
+            writeHedges(workbook, headerStyle, dateStyle, userId);
+            writeRateHistory(workbook, headerStyle, dateTimeStyle);
 
             workbook.write(out);
             log.info("Generated Excel report for user {} (home {})", userId, home);
@@ -124,7 +125,7 @@ public class ExcelReportService {
         autoSize(sheet, headers.length);
     }
 
-    private void writeExposures(Workbook workbook, CellStyle headerStyle, Long userId) {
+    private void writeExposures(Workbook workbook, CellStyle headerStyle, CellStyle dateStyle, Long userId) {
         Sheet sheet = workbook.createSheet("Exposures");
         String[] headers = {"ID", "Type", "Currency", "Amount", "Signed amount", "Counterparty",
                 "Entity", "Value date", "Maturity date", "Status", "Description"};
@@ -140,15 +141,15 @@ public class ExcelReportService {
             numeric(row, 4, e.getSignedAmount());
             cell(row, 5, null, e.getCounterparty());
             cell(row, 6, null, e.getEntityName());
-            cell(row, 7, null, e.getValueDate() == null ? null : e.getValueDate().toString());
-            cell(row, 8, null, e.getMaturityDate() == null ? null : e.getMaturityDate().toString());
+            dateCell(row, 7, dateStyle, e.getValueDate());
+            dateCell(row, 8, dateStyle, e.getMaturityDate());
             cell(row, 9, null, e.getStatus());
             cell(row, 10, null, e.getDescription());
         }
         autoSize(sheet, headers.length);
     }
 
-    private void writeHedges(Workbook workbook, CellStyle headerStyle, Long userId) {
+    private void writeHedges(Workbook workbook, CellStyle headerStyle, CellStyle dateStyle, Long userId) {
         Sheet sheet = workbook.createSheet("Hedges");
         String[] headers = {"ID", "Exposure ID", "Instrument", "Direction", "Pair", "Notional",
                 "Contract rate", "Spot rate", "Mark-to-market", "Unrealized P&L",
@@ -171,13 +172,13 @@ public class ExcelReportService {
             numeric(row, 10, h.getHedgeRatioPercent());
             numeric(row, 11, h.getEffectivenessPercent());
             cell(row, 12, null, h.getEffective() == null ? null : (h.getEffective() ? "YES" : "NO"));
-            cell(row, 13, null, h.getMaturityDate() == null ? null : h.getMaturityDate().toString());
+            dateCell(row, 13, dateStyle, h.getMaturityDate());
             cell(row, 14, null, h.getStatus());
         }
         autoSize(sheet, headers.length);
     }
 
-    private void writeRateHistory(Workbook workbook, CellStyle headerStyle) {
+    private void writeRateHistory(Workbook workbook, CellStyle headerStyle, CellStyle dateTimeStyle) {
         Sheet sheet = workbook.createSheet("Rate History");
         String[] headers = {"Pair", "Captured at", "Rate"};
         writeHeader(sheet.createRow(0), headerStyle, headers);
@@ -194,7 +195,7 @@ public class ExcelReportService {
             for (RateHistoryDTO.Point p : history.getPoints()) {
                 Row row = sheet.createRow(r++);
                 cell(row, 0, null, label);
-                cell(row, 1, null, p.getCapturedAt() == null ? null : TIMESTAMP.format(p.getCapturedAt()));
+                dateTimeCell(row, 1, dateTimeStyle, p.getCapturedAt());
                 numeric(row, 2, p.getRate());
             }
         }
@@ -218,6 +219,12 @@ public class ExcelReportService {
         return style;
     }
 
+    private static CellStyle dataFormatStyle(Workbook workbook, String pattern) {
+        CellStyle style = workbook.createCellStyle();
+        style.setDataFormat(workbook.createDataFormat().getFormat(pattern));
+        return style;
+    }
+
     private static void writeHeader(Row row, CellStyle style, String[] headers) {
         for (int i = 0; i < headers.length; i++) {
             cell(row, i, style, headers[i]);
@@ -231,6 +238,22 @@ public class ExcelReportService {
         }
         if (style != null) {
             cell.setCellStyle(style);
+        }
+    }
+
+    private static void dateCell(Row row, int col, CellStyle dateStyle, LocalDate value) {
+        Cell cell = row.createCell(col);
+        if (value != null) {
+            cell.setCellValue(value);
+            cell.setCellStyle(dateStyle);
+        }
+    }
+
+    private static void dateTimeCell(Row row, int col, CellStyle dateTimeStyle, LocalDateTime value) {
+        Cell cell = row.createCell(col);
+        if (value != null) {
+            cell.setCellValue(value);
+            cell.setCellStyle(dateTimeStyle);
         }
     }
 
