@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "FxDashboard"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "c2e1b2f3-4d5e-4f6a-9b0c-1d2e3f4a5b6c"
+  }
+}

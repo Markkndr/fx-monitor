@@ -1,0 +1,102 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "3a9ce67b89bc4a1032c0",
+  "position": {
+    "x": 551.18339150145721,
+    "y": 144.42773360198612,
+    "z": 3000,
+    "height": 575.74593122968611,
+    "width": 729.01617913383473,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Pair"
+                }
+              },
+              "queryRef": "Hedges.Pair",
+              "nativeQueryRef": "Pair",
+              "active": true
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Verdict"
+                }
+              },
+              "queryRef": "Hedges.Verdict",
+              "nativeQueryRef": "Verdict"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Hedges"
+                        }
+                      },
+                      "Property": "Notional"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Hedges.Notional)",
+              "nativeQueryRef": "Notional"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "Hedges"
+                      }
+                    },
+                    "Property": "Notional"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    }
+  }
+}

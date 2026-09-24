@@ -1,0 +1,13 @@
+table Account
+	lineageTag: b59e3d9b-9cca-4096-9fae-ff3a14bf8d4a
+
+	column Account
+		dataType: string
+		lineageTag: bbc114b4-2cd8-49ad-89cf-0321df089813
+		summarizeBy: none
+		sourceColumn: [Account]
+
+	partition Account = calculated
+		mode: import
+		source = DATATABLE ( "Account", STRING, { { "Compliant" }, { "Mid" }, { "Breach" } } )
+

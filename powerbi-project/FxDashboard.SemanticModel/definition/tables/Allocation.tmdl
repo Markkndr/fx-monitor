@@ -1,0 +1,81 @@
+table Allocation
+	lineageTag: a3cd3c4d-b4d1-47e4-9517-79c7db6e0d9d
+
+	measure 'Total Portfolio Value' = SUM ( Allocation[Value in home] )
+		formatString: #,0.00
+		lineageTag: 10740393-6aa9-4324-9681-e13d8bc32c6b
+
+	measure 'Currencies Held' = COUNTROWS ( Allocation )
+		formatString: 0
+		lineageTag: f720c5b5-c611-4e8c-b234-d8ae123ea145
+
+	measure 'Largest Currency Weight %' = MAX ( Allocation[% of portfolio] ) / 100
+		formatString: 0.0%
+		lineageTag: 7a2c3e2a-659e-4447-b0d1-1072bdf83169
+
+	measure 'Net Exposure (home)' = SUM ( Allocation[Value in home] )
+		formatString: #,0.00
+		lineageTag: 17019f43-f4cd-4923-977c-c96d4b65206c
+
+	column Currency
+		dataType: string
+		lineageTag: 22f6e114-060d-4b67-bf9a-8ec0593c12ad
+		sourceColumn: Currency
+
+	column 'Net exposure'
+		dataType: double
+		formatString: 0
+		lineageTag: 4fcecd45-b5ba-4f96-a50b-72351f488ccc
+		sourceColumn: Net exposure
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	column Reserved
+		dataType: double
+		lineageTag: 77b98177-a5dd-4070-9f91-e7dd7d8849dc
+		sourceColumn: Reserved
+
+	column 'Rate to home'
+		dataType: double
+		lineageTag: 04dcef1b-4799-4b20-a6b2-bfb73495fe28
+		sourceColumn: Rate to home
+
+	column 'Value in home'
+		dataType: double
+		lineageTag: 95aff060-12cf-4c57-97b6-3c6b18812c76
+		sourceColumn: Value in home
+
+	column '% of portfolio'
+		dataType: double
+		lineageTag: d44c897b-cfb2-4d66-9d39-7510a990c3bc
+		sourceColumn: % of portfolio
+
+	column Account
+		dataType: string
+		lineageTag: a759fde2-8c59-4448-a618-d1e5553196ff
+		summarizeBy: none
+		sourceColumn: Account
+
+	partition Allocation = m
+		mode: import
+		source =
+				let
+				    Load = (path as text, account as text) =>
+				        let
+				            Source = Excel.Workbook(File.Contents(path), null, true),
+				            Data = Source{[Item="Portfolio Summary", Kind="Sheet"]}[Data],
+				            NoBlanks = Table.SelectRows(Data, each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {null, ""}))),
+				            Skipped = Table.Skip(NoBlanks, 3),
+				            Promoted = Table.PromoteHeaders(Skipped, [PromoteAllScalars=true]),
+				            Tagged = Table.AddColumn(Promoted, "Account", each account, type text)
+				        in
+				            Tagged,
+				    Combined = Table.Combine({
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-compliant.xlsx", "Compliant"),
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-mid.xlsx", "Mid"),
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-breach.xlsx", "Breach")
+				    }),
+				    Typed = Table.TransformColumnTypes(Combined, {{"Currency", type text}, {"Net exposure", type number}, {"Reserved", type number}, {"Rate to home", type number}, {"Value in home", type number}, {"% of portfolio", type number}})
+				in
+				    Typed
+

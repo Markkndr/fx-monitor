@@ -1,0 +1,58 @@
+table 'Summary KPIs'
+	lineageTag: a673905e-6f7e-4ba8-b5c2-2adb15da73f8
+
+	column Metric
+		dataType: string
+		lineageTag: 966c89d4-47e8-42a0-8b0a-9f5785b3a24f
+		sourceColumn: Metric
+
+	column Value
+		dataType: string
+		lineageTag: e2237120-d5ca-4688-8674-181c72b68345
+		sourceColumn: Value
+
+	column Column3
+		dataType: string
+		lineageTag: 6645743d-acfc-4baa-9ee9-763fbe080ed9
+		summarizeBy: none
+		sourceColumn: Column3
+
+		annotation SummarizationSetBy = Automatic
+
+	column Column4
+		dataType: string
+		lineageTag: b3983fad-edd2-4b6d-ae69-ef635d4529ee
+		summarizeBy: none
+		sourceColumn: Column4
+
+		annotation SummarizationSetBy = Automatic
+
+	column Column5
+		dataType: string
+		lineageTag: cef03b11-565b-4482-98ee-1c22a50c4297
+		summarizeBy: none
+		sourceColumn: Column5
+
+		annotation SummarizationSetBy = Automatic
+
+	column Column6
+		dataType: string
+		lineageTag: 56f49343-b4db-4e19-9585-3123a323910d
+		summarizeBy: none
+		sourceColumn: Column6
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Summary KPIs' = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-compliant.xlsx"), null, true),
+				    Data = Source{[Item="Portfolio Summary", Kind="Sheet"]}[Data],
+				    NoBlanks = Table.SelectRows(Data, each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {null, ""}))),
+				    Kept = Table.FirstN(NoBlanks, 3),
+				    Renamed = Table.RenameColumns(Kept, {{"Column1", "Metric"}, {"Column2", "Value"}}),
+				    Typed = Table.TransformColumnTypes(Renamed, {{"Metric", type text}, {"Value", type text}})
+				in
+				    Typed
+

@@ -1,0 +1,130 @@
+table Exposures
+	lineageTag: c45bf247-7866-46cc-b236-cd9d6a1fa37c
+
+	column ID
+		dataType: int64
+		lineageTag: 2fbe6096-287a-4488-81d6-ee27c9cfbc9f
+		summarizeBy: none
+		sourceColumn: ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		lineageTag: b6a55175-2a94-4137-a4e9-4d9dd8290fdb
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Currency
+		dataType: string
+		lineageTag: cffe203a-e6a1-40b2-b768-e5adca6047fe
+		summarizeBy: none
+		sourceColumn: Currency
+
+		annotation SummarizationSetBy = Automatic
+
+	column Amount
+		dataType: double
+		lineageTag: f2edd597-828e-4030-b762-61f93c5cdb7f
+		summarizeBy: sum
+		sourceColumn: Amount
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Signed amount'
+		dataType: double
+		lineageTag: b53faaa2-9907-4f91-b310-c38d130a7760
+		summarizeBy: sum
+		sourceColumn: Signed amount
+
+		annotation SummarizationSetBy = Automatic
+
+	column Counterparty
+		dataType: string
+		lineageTag: e1bdbb7f-ffe1-47e4-9339-274566b497ec
+		summarizeBy: none
+		sourceColumn: Counterparty
+
+		annotation SummarizationSetBy = Automatic
+
+	column Entity
+		dataType: string
+		lineageTag: ab0d4a10-532a-47b9-a75b-0c188284ced8
+		summarizeBy: none
+		sourceColumn: Entity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Value date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 195703bf-bc28-43d2-8247-723967aee353
+		summarizeBy: none
+		sourceColumn: Value date
+
+		variation Variation
+			isDefault
+			relationship: 34acc811-31fa-48a7-b0ae-3c78e0cc1dc8
+			defaultHierarchy: LocalDateTable_21c2e1c1-fc5e-48e0-b80c-4d6978561abc.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Maturity date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: bdb74240-bfaf-4933-b54b-cebf1100a2bc
+		summarizeBy: none
+		sourceColumn: Maturity date
+
+		variation Variation
+			isDefault
+			relationship: b9da0cd2-ffde-4c34-ab84-7e52f2983d1c
+			defaultHierarchy: LocalDateTable_2466a5ef-6e87-4d87-b0cc-2785f10759c5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: aa01fce6-eeb9-42dd-9ef9-64322130958c
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: ce06cbff-41d1-4de1-b67b-512605b75389
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column Account
+		dataType: string
+		lineageTag: 64810099-3e2c-4ace-86e1-f0966716a58c
+		summarizeBy: none
+		sourceColumn: Account
+
+	partition Exposures = m
+		mode: import
+		source =
+				let
+				    Load = (path as text, account as text) =>
+				        let
+				            Source = Excel.Workbook(File.Contents(path), null, true),
+				            Data = Source{[Item="Exposures", Kind="Sheet"]}[Data],
+				            Promoted = Table.PromoteHeaders(Data, [PromoteAllScalars=true]),
+				            Tagged = Table.AddColumn(Promoted, "Account", each account, type text)
+				        in
+				            Tagged,
+				    Combined = Table.Combine({
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-compliant.xlsx", "Compliant"),
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-mid.xlsx", "Mid"),
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-breach.xlsx", "Breach")
+				    }),
+				    Typed = Table.TransformColumnTypes(Combined, {{"ID", Int64.Type}, {"Amount", type number}, {"Signed amount", type number}, {"Value date", type datetime}, {"Maturity date", type datetime}})
+				in
+				    Typed
+

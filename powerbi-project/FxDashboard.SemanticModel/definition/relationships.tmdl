@@ -1,0 +1,36 @@
+relationship 34acc811-31fa-48a7-b0ae-3c78e0cc1dc8
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Exposures.'Value date'
+	toColumn: LocalDateTable_21c2e1c1-fc5e-48e0-b80c-4d6978561abc.Date
+
+relationship b9da0cd2-ffde-4c34-ab84-7e52f2983d1c
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Exposures.'Maturity date'
+	toColumn: LocalDateTable_2466a5ef-6e87-4d87-b0cc-2785f10759c5.Date
+
+relationship 32ffad15-7bdc-4e4e-b22d-70d99822e5e5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Hedges.'Maturity date'
+	toColumn: LocalDateTable_6ef7637a-e901-41bf-8f5e-395b71cf5eec.Date
+
+relationship 765c8a63-69f5-4a20-b2e4-b9847bf594dd
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'Rate History'.'Captured at'
+	toColumn: LocalDateTable_da8a400a-8ede-4b63-9798-9a361c5655bc.Date
+
+relationship Account_Allocation
+	fromColumn: Allocation.Account
+	toColumn: Account.Account
+
+relationship Account_Exposures
+	fromColumn: Exposures.Account
+	toColumn: Account.Account
+
+relationship Account_Hedges
+	fromColumn: Hedges.Account
+	toColumn: Account.Account
+
+relationship Account_RateHistory
+	fromColumn: 'Rate History'.Account
+	toColumn: Account.Account
+

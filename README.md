@@ -30,6 +30,7 @@ A treasury-grade platform that gives finance teams a real-time, consolidated vie
 - [Architecture](#-architecture)
 - [Tech Stack](#-tech-stack)
 - [Current Status](#-current-status)
+- [Power BI Dashboard](#-power-bi-dashboard)
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
 - [License](#-license)
@@ -188,6 +189,7 @@ The foundational layer is in place. Implemented so far:
 - 📑 **Excel reporting** — one-click export of the caller's portfolio to a multi-sheet `.xlsx` workbook (portfolio summary, exposures, hedges, rate history) via Apache POI (`/api/reports/export.xlsx`)
 - 📄 **Executive PDF** — a one-page FX risk executive summary (portfolio snapshot, net exposure by currency, hedging overview, Value at Risk, P&L attribution, stress-test battery) rendered with OpenPDF (`/api/reports/executive.pdf`)
 - 📋 **Compliance PDF** — a hedge-effectiveness report applying the ASC 815 / IAS 39 dollar-offset test (80–125% band) to designated hedges, with per-hedge PASS/FAIL verdicts, an overall compliance status, and an undesignated economic-hedge listing (`/api/reports/compliance.pdf`)
+- 📊 **Power BI dashboard** — an interactive Power BI report, committed as a text-based `.pbip` project, built on the Excel export: portfolio-allocation, rate-trend, and hedge-compliance pages driven by DAX measures (see [Power BI Dashboard](#-power-bi-dashboard))
 - 🖥️ **Desktop UI** — a JavaFX front-end (login, register, dashboard with wallets, exposures, hedges, alerts, transactions, statistics, and analytics tabs) that calls the service layer in-process
 - 🗄️ **Persistence** — Spring Data JPA repositories over an embedded H2 database (a PostgreSQL driver is bundled for a future server deployment)
 
@@ -275,6 +277,40 @@ Exposure tracking, FX rate integration, hedging management, the advanced-analyti
 | `GET` | `/compliance.pdf` | Download the caller's hedge-effectiveness compliance report as a PDF, valued in `?home=` (defaults to USD) |
 
 > All `/api/transactions`, `/api/statistics`, `/api/exposures`, `/api/alerts`, `/api/hedges`, `/api/analytics`, and `/api/reports` endpoints are scoped to the authenticated user — a user can only ever see their own data.
+
+---
+
+## 📊 Power BI Dashboard
+
+The multi-sheet workbook from `/api/reports/export.xlsx` doubles as the data source for an interactive **Power BI** dashboard for treasury and executive review. It's committed as a text-based **Power BI Project** ([`powerbi-project/`](powerbi-project/FxDashboard.pbip)) — the full data model, DAX measures, and report layout are version-controlled and diffable rather than locked inside a binary `.pbix`.
+
+<div align="center">
+<img src="docs/powerbi/dashboard.png" alt="FX Power BI dashboard — compliance page" width="850">
+</div>
+
+**Three pages:**
+
+| Page | What it shows |
+|------|---------------|
+| **Portfolio Allocation** | Total value, currency count, and largest-currency-weight KPIs, a currency-mix donut, and value-by-currency breakdown |
+| **Rate Trends** | FX rate time series per pair, from the persisted rate-history snapshots |
+| **Compliance** | Per-hedge PASS / FAIL / N-A scoring and an overall COMPLIANT / REVIEW REQUIRED status, colour-coded by verdict |
+
+The **Compliance** page re-implements the app's ASC 815 / IAS 39 dollar-offset test (the 80–125% "highly effective" band) as DAX measures — `Designated Hedges`, `Assessed Hedges`, `Passing Hedges`, `Failing Hedges`, `Compliance Status` — so the report reaches the same verdict as the compliance PDF from `/api/reports/compliance.pdf`.
+
+### Reproducing it
+
+```powershell
+# 1. Run the app under the demo profile, then export all three demo portfolios (see scripts/)
+./scripts/export-fx-report.ps1 -Email demo@fxmonitor.com        -Out powerbi-exports/fx-compliant.xlsx
+./scripts/export-fx-report.ps1 -Email demo-mid@fxmonitor.com    -Out powerbi-exports/fx-mid.xlsx
+./scripts/export-fx-report.ps1 -Email demo-breach@fxmonitor.com -Out powerbi-exports/fx-breach.xlsx
+
+# 2. Open the project in Power BI Desktop and refresh
+#    powerbi-project/FxDashboard.pbip  →  Home → Refresh
+```
+
+> The three demo accounts (`demo`, `demo-mid`, `demo-breach` — all password `demo1234`) each land on a different compliance verdict. The model unions all three exports into a star schema (an `Account` dimension related to each fact table), so a single **Account slicer** flips the entire report between the compliant, mid-band, and breach datasets. The `.pbip` model reads local export paths, so update the source file locations after cloning if you refresh from your own exports.
 
 ---
 

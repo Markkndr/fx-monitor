@@ -1,0 +1,259 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "0b8f58e10d981923421d",
+  "position": {
+    "x": 0,
+    "y": 144.6080204463986,
+    "z": 2000,
+    "height": 417.85507748621927,
+    "width": 550.92994292769038,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Instrument"
+                }
+              },
+              "queryRef": "Hedges.Instrument",
+              "nativeQueryRef": "Instrument"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Pair"
+                }
+              },
+              "queryRef": "Hedges.Pair",
+              "nativeQueryRef": "Pair"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Hedges"
+                        }
+                      },
+                      "Property": "Notional"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Hedges.Notional)",
+              "nativeQueryRef": "Notional"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Hedges"
+                        }
+                      },
+                      "Property": "Hedge ratio %"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Hedges.Hedge ratio %)",
+              "nativeQueryRef": "Hedge ratio %"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Hedges"
+                        }
+                      },
+                      "Property": "Effectiveness %"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Hedges.Effectiveness %)",
+              "nativeQueryRef": "Effectiveness %"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Verdict"
+                }
+              },
+              "queryRef": "Hedges.Verdict",
+              "nativeQueryRef": "Verdict"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Hedges"
+                        }
+                      },
+                      "Property": "Compliance Status Color"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Hedges.Verdict"
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "0c66db3c729ebe68ddd9",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Hedges"
+              }
+            },
+            "Property": "Instrument"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "4510871f9bdd91ba2d19",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Hedges"
+              }
+            },
+            "Property": "Pair"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "92caa76ba3a1609db9ae",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Hedges"
+                  }
+                },
+                "Property": "Notional"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "4a58ed4c6c09a1bcb216",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Hedges"
+                  }
+                },
+                "Property": "Hedge ratio %"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "d5ca82e2da9ab0d90ac4",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Hedges"
+                  }
+                },
+                "Property": "Effectiveness %"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "13553f793c30c66c806d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Hedges"
+              }
+            },
+            "Property": "Verdict"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
+}
