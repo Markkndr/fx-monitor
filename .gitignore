@@ -33,3 +33,9 @@ fx-monitor/src/main/resources/application.yml
 # Claude Code artifacts
 MEMORY.md
 .claude/memory/
+
+# Generated report exports (regenerate via scripts/export-fx-report.ps1)
+powerbi-exports/
+
+# Power BI Desktop (.pbip) local artifacts — regenerated on open, machine-specific
+**/.pbi/
