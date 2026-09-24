@@ -1,0 +1,229 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "fecf76040b0586b02a73",
+  "position": {
+    "x": 639.65087548534086,
+    "y": 174.37058112545591,
+    "z": 3000,
+    "height": 226.94462568589489,
+    "width": 640.52710956134808,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Allocation"
+                    }
+                  },
+                  "Property": "Currency"
+                }
+              },
+              "queryRef": "Allocation.Currency",
+              "nativeQueryRef": "Currency"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Allocation"
+                        }
+                      },
+                      "Property": "Reserved"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Allocation.Reserved)",
+              "nativeQueryRef": "Reserved"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Allocation"
+                        }
+                      },
+                      "Property": "Net exposure"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Allocation.Net exposure)",
+              "nativeQueryRef": "Net exposure"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Allocation"
+                        }
+                      },
+                      "Property": "Rate to home"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Allocation.Rate to home)",
+              "nativeQueryRef": "Rate to home"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Allocation"
+                        }
+                      },
+                      "Property": "Value in home"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Allocation.Value in home)",
+              "nativeQueryRef": "Value in home"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "Allocation"
+                      }
+                    },
+                    "Property": "Value in home"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "778569199b948ad959d5",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Allocation"
+              }
+            },
+            "Property": "Currency"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "c2f327803c728b6e6ec9",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Allocation"
+                  }
+                },
+                "Property": "Value in home"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "2fee6a2a208587946624",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Allocation"
+                  }
+                },
+                "Property": "Rate to home"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "196114146e24b9005310",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Allocation"
+                  }
+                },
+                "Property": "Net exposure"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "4e5c1b280316be62c631",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Allocation"
+                  }
+                },
+                "Property": "Reserved"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

@@ -1,0 +1,261 @@
+table Hedges
+	lineageTag: 21cd2a24-4b53-4a06-b862-507356bff1c9
+
+	measure 'Total Notional' = SUM ( Hedges[Notional] )
+		formatString: #,0.00
+		lineageTag: 8c6dede7-8a88-49c0-b931-13cf02541de1
+
+	measure 'Total Unrealized P&L' = SUM ( Hedges[Unrealized P&L] )
+		formatString: #,0.00
+		lineageTag: cbc0348a-d029-4740-a45f-528a04e479e9
+
+	measure 'Avg Hedge Ratio %' = AVERAGE ( Hedges[Hedge ratio %] )
+		formatString: 0.00
+		lineageTag: e4eefe6b-bfe0-4b50-9b21-8ac48215d09e
+
+	measure 'Avg Effectiveness %' = AVERAGE ( Hedges[Effectiveness %] )
+		formatString: 0.00
+		lineageTag: 82c68f62-0d68-41bc-a81d-331a658a6027
+
+	measure 'Designated Hedges' = CALCULATE ( COUNTROWS ( Hedges ), NOT ISBLANK ( Hedges[Exposure ID] ) )
+		formatString: 0
+		lineageTag: 5db18c00-1fbb-4eb3-bf68-10a73816731c
+
+	measure 'Assessed Hedges' =
+			CALCULATE (
+			    COUNTROWS ( Hedges ),
+			    NOT ISBLANK ( Hedges[Exposure ID] ),
+			    NOT ISBLANK ( Hedges[Effectiveness %] )
+			)
+		formatString: 0
+		lineageTag: 1bc3bf09-773f-419c-aae7-3ecbcf9d6bbc
+
+	measure 'Passing Hedges' =
+			CALCULATE (
+			    COUNTROWS ( Hedges ),
+			    FILTER (
+			        Hedges,
+			        NOT ISBLANK ( Hedges[Exposure ID] )
+			            && NOT ISBLANK ( Hedges[Effectiveness %] )
+			            && ABS ( Hedges[Effectiveness %] ) >= 80
+			            && ABS ( Hedges[Effectiveness %] ) <= 125
+			    )
+			)
+		formatString: 0
+		lineageTag: 2e4fd4e1-6a24-4a8d-aca8-e0734dff66ff
+
+	measure 'Failing Hedges' =
+			CALCULATE (
+			    COUNTROWS ( Hedges ),
+			    FILTER (
+			        Hedges,
+			        NOT ISBLANK ( Hedges[Exposure ID] )
+			            && NOT ISBLANK ( Hedges[Effectiveness %] )
+			            && ( ABS ( Hedges[Effectiveness %] ) < 80 || ABS ( Hedges[Effectiveness %] ) > 125 )
+			    )
+			)
+		formatString: 0
+		lineageTag: 6d0bab45-f438-4a67-9f40-4ef8b77abd24
+
+	measure 'Not Assessable Hedges' =
+			CALCULATE (
+			    COUNTROWS ( Hedges ),
+			    FILTER ( Hedges, NOT ISBLANK ( Hedges[Exposure ID] ) && ISBLANK ( Hedges[Effectiveness %] ) )
+			)
+		formatString: 0
+		lineageTag: 7a86efd4-d069-4c6b-a9fa-f33724dbd267
+
+	measure 'Pass Rate %' = DIVIDE ( [Passing Hedges], [Assessed Hedges] )
+		formatString: 0.0%
+		lineageTag: 61de2043-dcd0-4b06-a4f0-a687d36e9f8d
+
+	measure 'Compliance Status' =
+			VAR assessed = [Assessed Hedges]
+			VAR fail = [Failing Hedges]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    assessed = 0, "NO ASSESSABLE HEDGES",
+			    fail = 0, "COMPLIANT — all assessed hedges highly effective",
+			    "REVIEW REQUIRED — " & fail & " hedge(s) outside the effective band"
+			)
+		lineageTag: ea5c9989-e75f-460a-9afb-eab454cb3f5d
+
+	measure 'Compliance Status Color' =
+			SWITCH (
+			    TRUE (),
+			    [Assessed Hedges] = 0, "#6B7280",
+			    [Failing Hedges] = 0, "#1B7A3D",
+			    "#B02A2A"
+			)
+		lineageTag: e634e6d0-978c-4f22-a549-b4aaabf7c373
+
+	column ID
+		dataType: int64
+		lineageTag: 242ac395-8d42-4c0d-b2e3-53a764ff43db
+		summarizeBy: count
+		sourceColumn: ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Exposure ID'
+		dataType: int64
+		lineageTag: 6ed085db-94e7-456e-8b3d-a899439fcc94
+		summarizeBy: none
+		sourceColumn: Exposure ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Instrument
+		dataType: string
+		lineageTag: d6cffc53-456e-4b22-a67a-124905c8f4e7
+		summarizeBy: none
+		sourceColumn: Instrument
+
+		annotation SummarizationSetBy = Automatic
+
+	column Direction
+		dataType: string
+		lineageTag: 6e8c8301-3b50-40be-8ff6-aedea9f5fea7
+		summarizeBy: none
+		sourceColumn: Direction
+
+		annotation SummarizationSetBy = Automatic
+
+	column Pair
+		dataType: string
+		lineageTag: 7a14372e-81a5-4383-9993-7041ed61e4da
+		summarizeBy: none
+		sourceColumn: Pair
+
+		annotation SummarizationSetBy = Automatic
+
+	column Notional
+		dataType: double
+		lineageTag: 8eb123cb-aa17-43b3-bf8a-050fcbb27431
+		summarizeBy: sum
+		sourceColumn: Notional
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contract rate'
+		dataType: double
+		lineageTag: 4e738ae9-a2ef-40b2-a475-cad69d695774
+		summarizeBy: sum
+		sourceColumn: Contract rate
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Spot rate'
+		dataType: double
+		lineageTag: 12b6c467-fb7e-4c89-958e-4af10cc9d712
+		summarizeBy: sum
+		sourceColumn: Spot rate
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mark-to-market
+		dataType: double
+		lineageTag: a02f269c-0eb9-436e-a616-1d303f61a3ec
+		summarizeBy: sum
+		sourceColumn: Mark-to-market
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Unrealized P&L'
+		dataType: double
+		lineageTag: 169ec210-b8da-4ddf-b38b-d2d53965c6e6
+		summarizeBy: sum
+		sourceColumn: Unrealized P&L
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hedge ratio %'
+		dataType: double
+		lineageTag: c02550b0-da0a-4615-88e2-34402e9bc067
+		summarizeBy: sum
+		sourceColumn: Hedge ratio %
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Effectiveness %'
+		dataType: double
+		lineageTag: 84a3d815-5d58-4009-a3f4-56607ad8ff3c
+		summarizeBy: sum
+		sourceColumn: Effectiveness %
+
+		annotation SummarizationSetBy = Automatic
+
+	column Effective
+		dataType: string
+		lineageTag: 8c402ff6-080e-403b-a78a-b72af3c31f29
+		summarizeBy: none
+		sourceColumn: Effective
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Maturity date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: f7d14b02-4c4a-4eb7-9710-6b39a6f9d782
+		summarizeBy: none
+		sourceColumn: Maturity date
+
+		variation Variation
+			isDefault
+			relationship: 32ffad15-7bdc-4e4e-b22d-70d99822e5e5
+			defaultHierarchy: LocalDateTable_6ef7637a-e901-41bf-8f5e-395b71cf5eec.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: ce2fe870-9644-4cb8-b1ac-9dd89ff2f331
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column Verdict =
+			VAR eff = Hedges[Effectiveness %]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    ISBLANK ( Hedges[Exposure ID] ), "Economic",
+			    ISBLANK ( eff ), "N/A",
+			    ABS ( eff ) >= 80 && ABS ( eff ) <= 125, "PASS",
+			    "FAIL"
+			)
+		dataType: string
+		lineageTag: 781464d6-338c-4768-b8c5-96d3fe391d89
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Account
+		dataType: string
+		lineageTag: aa077d90-dc7d-45f2-b9e9-1a74575c97e2
+		summarizeBy: none
+		sourceColumn: Account
+
+	partition Hedges = m
+		mode: import
+		source =
+				let
+				    Load = (path as text, account as text) =>
+				        let
+				            Source = Excel.Workbook(File.Contents(path), null, true),
+				            Data = Source{[Item="Hedges", Kind="Sheet"]}[Data],
+				            Promoted = Table.PromoteHeaders(Data, [PromoteAllScalars=true]),
+				            Tagged = Table.AddColumn(Promoted, "Account", each account, type text)
+				        in
+				            Tagged,
+				    Combined = Table.Combine({
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-compliant.xlsx", "Compliant"),
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-mid.xlsx", "Mid"),
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-breach.xlsx", "Breach")
+				    }),
+				    Typed = Table.TransformColumnTypes(Combined, {{"ID", Int64.Type}, {"Exposure ID", Int64.Type}, {"Notional", type number}, {"Contract rate", type number}, {"Spot rate", type number}, {"Mark-to-market", type number}, {"Unrealized P&L", type number}, {"Hedge ratio %", type number}, {"Effectiveness %", type number}, {"Maturity date", type datetime}})
+				in
+				    Typed
+

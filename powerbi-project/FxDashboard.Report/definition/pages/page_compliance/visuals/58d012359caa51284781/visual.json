@@ -1,0 +1,185 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "58d012359caa51284781",
+  "position": {
+    "x": 0,
+    "y": 61.89760011513691,
+    "z": 0,
+    "height": 82.530133486849209,
+    "width": 1280.1995706352918,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Designated Hedges"
+                }
+              },
+              "queryRef": "Hedges.Designated Hedges",
+              "nativeQueryRef": "Designated Hedges"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Assessed Hedges"
+                }
+              },
+              "queryRef": "Hedges.Assessed Hedges",
+              "nativeQueryRef": "Assessed Hedges"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Passing Hedges"
+                }
+              },
+              "queryRef": "Hedges.Passing Hedges",
+              "nativeQueryRef": "Passing Hedges"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Failing Hedges"
+                }
+              },
+              "queryRef": "Hedges.Failing Hedges",
+              "nativeQueryRef": "Failing Hedges"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Hedges"
+                    }
+                  },
+                  "Property": "Pass Rate %"
+                }
+              },
+              "queryRef": "Hedges.Pass Rate %",
+              "nativeQueryRef": "Pass Rate %"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Hedges"
+                  }
+                },
+                "Property": "Designated Hedges"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "fb99ff8c9700065022ba",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Hedges"
+              }
+            },
+            "Property": "Designated Hedges"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "0a452f69eb805ad19c0c",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Hedges"
+              }
+            },
+            "Property": "Assessed Hedges"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "743dfb2a4ad0d5b6431a",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Hedges"
+              }
+            },
+            "Property": "Passing Hedges"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "ee09eff482387e86a523",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Hedges"
+              }
+            },
+            "Property": "Failing Hedges"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "44c5f6940eab2b900ea2",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Hedges"
+              }
+            },
+            "Property": "Pass Rate %"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

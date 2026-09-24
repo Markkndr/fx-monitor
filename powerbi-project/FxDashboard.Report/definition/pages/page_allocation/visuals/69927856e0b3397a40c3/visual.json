@@ -1,0 +1,129 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "69927856e0b3397a40c3",
+  "position": {
+    "x": 0,
+    "y": 0,
+    "z": 0,
+    "height": 174.37058112545591,
+    "width": 1140.8567669615256,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Allocation"
+                    }
+                  },
+                  "Property": "Total Portfolio Value"
+                }
+              },
+              "queryRef": "Allocation.Total Portfolio Value",
+              "nativeQueryRef": "Total Portfolio Value"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Allocation"
+                    }
+                  },
+                  "Property": "Currencies Held"
+                }
+              },
+              "queryRef": "Allocation.Currencies Held",
+              "nativeQueryRef": "Currencies Held"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Allocation"
+                    }
+                  },
+                  "Property": "Largest Currency Weight %"
+                }
+              },
+              "queryRef": "Allocation.Largest Currency Weight %",
+              "nativeQueryRef": "Largest Currency Weight %"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Allocation"
+                  }
+                },
+                "Property": "Total Portfolio Value"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "a5e0ee724e7e36490860",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Allocation"
+              }
+            },
+            "Property": "Total Portfolio Value"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "dc1c1f261b69ae8cc419",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Allocation"
+              }
+            },
+            "Property": "Currencies Held"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "9996f53840031bc004e9",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Allocation"
+              }
+            },
+            "Property": "Largest Currency Weight %"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

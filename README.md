@@ -301,14 +301,16 @@ The **Compliance** page re-implements the app's ASC 815 / IAS 39 dollar-offset t
 ### Reproducing it
 
 ```powershell
-# 1. Run the app under the demo profile, then export a portfolio (see scripts/)
-./scripts/export-fx-report.ps1 -Email demo@fxmonitor.com -Out powerbi-exports/fx-compliant.xlsx
+# 1. Run the app under the demo profile, then export all three demo portfolios (see scripts/)
+./scripts/export-fx-report.ps1 -Email demo@fxmonitor.com        -Out powerbi-exports/fx-compliant.xlsx
+./scripts/export-fx-report.ps1 -Email demo-mid@fxmonitor.com    -Out powerbi-exports/fx-mid.xlsx
+./scripts/export-fx-report.ps1 -Email demo-breach@fxmonitor.com -Out powerbi-exports/fx-breach.xlsx
 
 # 2. Open the project in Power BI Desktop and refresh
 #    powerbi-project/FxDashboard.pbip  →  Home → Refresh
 ```
 
-> The three demo accounts (`demo`, `demo-mid`, `demo-breach` — all password `demo1234`) each land on a different compliance verdict, so exporting each one gives a compliant, mid-band, and breach dataset to compare. The `.pbip` model reads a local export path, so update the source file location after cloning if you refresh from your own export.
+> The three demo accounts (`demo`, `demo-mid`, `demo-breach` — all password `demo1234`) each land on a different compliance verdict. The model unions all three exports into a star schema (an `Account` dimension related to each fact table), so a single **Account slicer** flips the entire report between the compliant, mid-band, and breach datasets. The `.pbip` model reads local export paths, so update the source file locations after cloning if you refresh from your own exports.
 
 ---
 

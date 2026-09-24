@@ -1,0 +1,121 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "2834867fc72619b396c8",
+  "position": {
+    "x": 0,
+    "y": 174.37058112545591,
+    "z": 1000,
+    "height": 545.893829352558,
+    "width": 640.52710956134808,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Allocation"
+                    }
+                  },
+                  "Property": "Currency"
+                }
+              },
+              "queryRef": "Allocation.Currency",
+              "nativeQueryRef": "Currency",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Allocation"
+                        }
+                      },
+                      "Property": "% of portfolio"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Allocation.% of portfolio)",
+              "nativeQueryRef": "% of portfolio"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "Allocation"
+                      }
+                    },
+                    "Property": "% of portfolio"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "87a92000640c9d1690a6",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Allocation"
+                  }
+                },
+                "Property": "% of portfolio"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "69d230dc323206b00b40",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Allocation"
+              }
+            },
+            "Property": "Currency"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
+}

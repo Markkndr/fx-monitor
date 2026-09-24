@@ -1,0 +1,73 @@
+table 'Rate History'
+	lineageTag: b565f338-6e22-4aa5-a594-6c1952bd5098
+
+	measure 'Latest Rate' = LASTNONBLANKVALUE ( 'Rate History'[Captured at], AVERAGE ( 'Rate History'[Rate] ) )
+		formatString: 0.0000
+		lineageTag: cffd9899-ac3e-443d-b3db-06cb343a51dd
+
+	measure 'Rate Change %' =
+			VAR firstD = MIN ( 'Rate History'[Captured at] )
+			VAR lastD = MAX ( 'Rate History'[Captured at] )
+			VAR firstR = CALCULATE ( AVERAGE ( 'Rate History'[Rate] ), 'Rate History'[Captured at] = firstD )
+			VAR lastR = CALCULATE ( AVERAGE ( 'Rate History'[Rate] ), 'Rate History'[Captured at] = lastD )
+			RETURN DIVIDE ( lastR - firstR, firstR )
+		formatString: 0.0%
+		lineageTag: 866b8a15-d4b2-4bcf-9e2b-6b3bbe9dff4a
+
+	column Pair
+		dataType: string
+		lineageTag: 4fc9cd11-bce6-4b97-8326-e222d7e934a4
+		summarizeBy: none
+		sourceColumn: Pair
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Captured at'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn
+		lineageTag: c9217038-7a48-42dc-8763-8a9f75a4f22a
+		summarizeBy: none
+		sourceColumn: Captured at
+
+		variation Variation
+			isDefault
+			relationship: 765c8a63-69f5-4a20-b2e4-b9847bf594dd
+			defaultHierarchy: LocalDateTable_da8a400a-8ede-4b63-9798-9a361c5655bc.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Rate
+		dataType: double
+		lineageTag: 5988c816-a7fa-46ff-a863-c2b690e5c9fc
+		summarizeBy: sum
+		sourceColumn: Rate
+
+		annotation SummarizationSetBy = Automatic
+
+	column Account
+		dataType: string
+		lineageTag: 56212abc-de2c-4bfb-b6b7-5b7988753e4d
+		summarizeBy: none
+		sourceColumn: Account
+
+	partition 'Rate History' = m
+		mode: import
+		source =
+				let
+				    Load = (path as text, account as text) =>
+				        let
+				            Source = Excel.Workbook(File.Contents(path), null, true),
+				            Data = Source{[Item="Rate History", Kind="Sheet"]}[Data],
+				            Promoted = Table.PromoteHeaders(Data, [PromoteAllScalars=true]),
+				            Tagged = Table.AddColumn(Promoted, "Account", each account, type text)
+				        in
+				            Tagged,
+				    Combined = Table.Combine({
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-compliant.xlsx", "Compliant"),
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-mid.xlsx", "Mid"),
+				        Load("C:\Projects\PortfolioProjects\currency-exchange-platform\powerbi-exports\fx-breach.xlsx", "Breach")
+				    }),
+				    Typed = Table.TransformColumnTypes(Combined, {{"Pair", type text}, {"Captured at", type datetime}, {"Rate", type number}})
+				in
+				    Typed
+

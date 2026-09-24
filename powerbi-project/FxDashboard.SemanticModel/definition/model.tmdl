@@ -1,0 +1,26 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["Allocation","Exposures","Hedges","Rate History","Summary KPIs"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Allocation
+ref table Exposures
+ref table Hedges
+ref table 'Rate History'
+ref table 'Summary KPIs'
+ref table DateTableTemplate_b7d72455-25ed-43f4-9400-86a0add8e087
+ref table LocalDateTable_21c2e1c1-fc5e-48e0-b80c-4d6978561abc
+ref table LocalDateTable_2466a5ef-6e87-4d87-b0cc-2785f10759c5
+ref table LocalDateTable_6ef7637a-e901-41bf-8f5e-395b71cf5eec
+ref table LocalDateTable_da8a400a-8ede-4b63-9798-9a361c5655bc
+ref table Account
+
