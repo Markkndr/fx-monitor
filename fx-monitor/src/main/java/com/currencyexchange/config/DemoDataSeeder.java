@@ -24,7 +24,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -431,8 +430,6 @@ public class DemoDataSeeder implements CommandLineRunner {
         transactionRepository.save(saved);
     }
 
-    private final AtomicInteger refSeq = new AtomicInteger();
-
     private Transaction baseTransaction(User user, String type, String description, int daysAgo) {
         Transaction t = new Transaction();
         t.setUser(user);
@@ -440,7 +437,11 @@ public class DemoDataSeeder implements CommandLineRunner {
         t.setDescription(description);
         t.setFeeAmount(BigDecimal.ZERO);
         t.setStatus("PENDING");
-        t.setTransactionReference("TXN-DEMO" + String.format("%010d", refSeq.incrementAndGet()));
+        // Globally-unique reference (mirrors TransactionService#generateReference). A per-run
+        // counter would collide with references already persisted for an account that this run
+        // skips as fully-seeded, aborting startup on the unique constraint; a UUID never does.
+        t.setTransactionReference("TXN-DEMO-"
+                + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase());
         return t;
     }
 
