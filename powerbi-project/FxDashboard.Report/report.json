@@ -1,5 +1,5 @@
 {
-  "config": "{\"version\":\"5.76\",\"themeCollection\":{\"baseTheme\":{\"name\":\"Fluent2-CY26SU08\",\"version\":{\"visual\":\"2.12.0\",\"report\":\"3.4.0\",\"page\":\"2.3.1\"},\"type\":2}},\"activeSectionIndex\":0,\"linguisticSchemaSyncVersion\":2,\"settings\":{\"useStylableVisualContainerHeader\":true,\"defaultDrillFilterOtherVisuals\":true,\"useEnhancedTooltips\":false}}",
+  "config": "{\"version\":\"5.76\",\"themeCollection\":{\"baseTheme\":{\"name\":\"Fluent2-CY26SU08\",\"version\":{\"visual\":\"2.12.0\",\"report\":\"3.4.0\",\"page\":\"2.3.1\"},\"type\":2}},\"activeSectionIndex\":2,\"linguisticSchemaSyncVersion\":2,\"settings\":{\"useStylableVisualContainerHeader\":true,\"defaultDrillFilterOtherVisuals\":true,\"useEnhancedTooltips\":false}}",
   "filters": "[]",
   "layoutOptimization": 0,
   "pods": [
@@ -28,7 +28,7 @@
   ],
   "sections": [
     {
-      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"width\":{\"expr\":{\"Literal\":{\"Value\":\"301L\"}}}}}]}}",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"width\":{\"expr\":{\"Literal\":{\"Value\":\"184L\"}}}}}]}}",
       "displayName": "Portfolio Allocation",
       "displayOption": 1,
       "filters": "[]",
@@ -75,14 +75,51 @@
       "width": 1280.00
     },
     {
-      "config": "{}",
+      "config": "{\"objects\":{\"outspacePane\":[{\"properties\":{\"width\":{\"expr\":{\"Literal\":{\"Value\":\"202L\"}}}}}]}}",
       "displayName": "Compliance",
       "displayOption": 1,
       "filters": "[]",
       "height": 720.00,
       "name": "page_compliance",
       "ordinal": 2,
-      "visualContainers": [],
+      "visualContainers": [
+        {
+          "config": "{\"name\":\"0b8f58e10d981923421d\",\"layouts\":[{\"id\":0,\"position\":{\"x\":0,\"y\":144.42773360198612,\"z\":2,\"width\":551.1833915014572,\"height\":575.7459312296861,\"tabOrder\":2}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"projections\":{\"Values\":[{\"queryRef\":\"Hedges.Instrument\"},{\"queryRef\":\"Hedges.Pair\"},{\"queryRef\":\"Sum(Hedges.Notional)\"},{\"queryRef\":\"Sum(Hedges.Hedge ratio %)\"},{\"queryRef\":\"Sum(Hedges.Effectiveness %)\"},{\"queryRef\":\"Hedges.Verdict\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"h\",\"Entity\":\"Hedges\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Instrument\"},\"Name\":\"Hedges.Instrument\",\"NativeReferenceName\":\"Instrument\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Pair\"},\"Name\":\"Hedges.Pair\",\"NativeReferenceName\":\"Pair\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Notional\"}},\"Function\":0},\"Name\":\"Sum(Hedges.Notional)\",\"NativeReferenceName\":\"Notional\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Hedge ratio %\"}},\"Function\":0},\"Name\":\"Sum(Hedges.Hedge ratio %)\",\"NativeReferenceName\":\"Hedge ratio %\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Effectiveness %\"}},\"Function\":0},\"Name\":\"Sum(Hedges.Effectiveness %)\",\"NativeReferenceName\":\"Effectiveness %\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Verdict\"},\"Name\":\"Hedges.Verdict\",\"NativeReferenceName\":\"Verdict\"}]},\"objects\":{\"values\":[{\"properties\":{\"fontColor\":{\"solid\":{\"color\":{\"expr\":{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Entity\":\"Hedges\"}},\"Property\":\"Compliance Status Color\"}}}}}},\"selector\":{\"data\":[{\"dataViewWildcard\":{\"matchingOption\":1}}],\"metadata\":\"Hedges.Verdict\"}}]}}}",
+          "filters": "[]",
+          "height": 575.75,
+          "width": 551.18,
+          "x": 0.00,
+          "y": 144.43,
+          "z": 2.00
+        },
+        {
+          "config": "{\"name\":\"3a9ce67b89bc4a1032c0\",\"layouts\":[{\"id\":0,\"position\":{\"x\":551.1833915014572,\"y\":144.42773360198612,\"z\":3,\"width\":729.0161791338347,\"height\":575.7459312296861,\"tabOrder\":3}}],\"singleVisual\":{\"visualType\":\"barChart\",\"projections\":{\"Category\":[{\"queryRef\":\"Hedges.Pair\",\"active\":true}],\"Y\":[{\"queryRef\":\"Sum(Hedges.Notional)\"}],\"Series\":[{\"queryRef\":\"Hedges.Verdict\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"h\",\"Entity\":\"Hedges\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Pair\"},\"Name\":\"Hedges.Pair\",\"NativeReferenceName\":\"Pair\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Notional\"}},\"Function\":0},\"Name\":\"Sum(Hedges.Notional)\",\"NativeReferenceName\":\"Notional\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Verdict\"},\"Name\":\"Hedges.Verdict\",\"NativeReferenceName\":\"Verdict\"}],\"OrderBy\":[{\"Direction\":2,\"Expression\":{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Notional\"}},\"Function\":0}}}]},\"hasDefaultSort\":true}}",
+          "filters": "[]",
+          "height": 575.75,
+          "width": 729.02,
+          "x": 551.18,
+          "y": 144.43,
+          "z": 3.00
+        },
+        {
+          "config": "{\"name\":\"58d012359caa51284781\",\"layouts\":[{\"id\":0,\"position\":{\"x\":0,\"y\":61.89760011513691,\"z\":0,\"width\":1280.1995706352918,\"height\":82.53013348684921,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"cardVisual\",\"projections\":{\"Data\":[{\"queryRef\":\"Hedges.Designated Hedges\"},{\"queryRef\":\"Hedges.Assessed Hedges\"},{\"queryRef\":\"Hedges.Passing Hedges\"},{\"queryRef\":\"Hedges.Failing Hedges\"},{\"queryRef\":\"Hedges.Pass Rate %\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"h\",\"Entity\":\"Hedges\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Designated Hedges\"},\"Name\":\"Hedges.Designated Hedges\",\"NativeReferenceName\":\"Designated Hedges\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Assessed Hedges\"},\"Name\":\"Hedges.Assessed Hedges\",\"NativeReferenceName\":\"Assessed Hedges\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Passing Hedges\"},\"Name\":\"Hedges.Passing Hedges\",\"NativeReferenceName\":\"Passing Hedges\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Failing Hedges\"},\"Name\":\"Hedges.Failing Hedges\",\"NativeReferenceName\":\"Failing Hedges\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Pass Rate %\"},\"Name\":\"Hedges.Pass Rate %\",\"NativeReferenceName\":\"Pass Rate %\"}],\"OrderBy\":[{\"Direction\":2,\"Expression\":{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Designated Hedges\"}}}]},\"hasDefaultSort\":true}}",
+          "filters": "[]",
+          "height": 82.53,
+          "width": 1280.20,
+          "x": 0.00,
+          "y": 61.90,
+          "z": 0.00
+        },
+        {
+          "config": "{\"name\":\"b2e3dbaa8a660b0a8417\",\"layouts\":[{\"id\":0,\"position\":{\"x\":0,\"y\":0,\"z\":1,\"width\":1280.1995706352918,\"height\":61.89760011513691,\"tabOrder\":1}}],\"singleVisual\":{\"visualType\":\"cardVisual\",\"projections\":{\"Data\":[{\"queryRef\":\"Hedges.Compliance Status\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"h\",\"Entity\":\"Hedges\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"h\"}},\"Property\":\"Compliance Status\"},\"Name\":\"Hedges.Compliance Status\",\"NativeReferenceName\":\"Compliance Status\"}]},\"objects\":{\"value\":[{\"properties\":{\"textWrap\":{\"expr\":{\"Literal\":{\"Value\":\"false\"}}},\"fontColor\":{\"solid\":{\"color\":{\"expr\":{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Entity\":\"Hedges\"}},\"Property\":\"Compliance Status Color\"}}}}}},\"selector\":{\"id\":\"default\"}}]}}}",
+          "filters": "[]",
+          "height": 61.90,
+          "width": 1280.20,
+          "x": 0.00,
+          "y": 0.00,
+          "z": 1.00
+        }
+      ],
       "width": 1280.00
     },
     {
@@ -93,7 +130,35 @@
       "height": 720.00,
       "name": "page_rates",
       "ordinal": 1,
-      "visualContainers": [],
+      "visualContainers": [
+        {
+          "config": "{\"name\":\"6050a4efc2ad3558304b\",\"layouts\":[{\"id\":0,\"position\":{\"x\":9.80995605158849,\"y\":0,\"z\":0,\"width\":936.8508029267007,\"height\":430.65707066473465,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"lineChart\",\"projections\":{\"Category\":[{\"queryRef\":\"Rate History.Captured at.Variation.Date Hierarchy.Day\",\"active\":true}],\"Series\":[{\"queryRef\":\"Rate History.Pair\"}],\"Y\":[{\"queryRef\":\"Sum(Rate History.Rate)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"r\",\"Entity\":\"Rate History\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"r\"}},\"Property\":\"Pair\"},\"Name\":\"Rate History.Pair\",\"NativeReferenceName\":\"Pair\"},{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"r\"}},\"Property\":\"Rate\"}},\"Function\":0},\"Name\":\"Sum(Rate History.Rate)\",\"NativeReferenceName\":\"Rate\"},{\"HierarchyLevel\":{\"Expression\":{\"Hierarchy\":{\"Expression\":{\"PropertyVariationSource\":{\"Expression\":{\"SourceRef\":{\"Source\":\"r\"}},\"Name\":\"Variation\",\"Property\":\"Captured at\"}},\"Hierarchy\":\"Date Hierarchy\"}},\"Level\":\"Day\"},\"Name\":\"Rate History.Captured at.Variation.Date Hierarchy.Day\",\"NativeReferenceName\":\"Captured at Day\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"HierarchyLevel\":{\"Expression\":{\"Hierarchy\":{\"Expression\":{\"PropertyVariationSource\":{\"Expression\":{\"SourceRef\":{\"Source\":\"r\"}},\"Name\":\"Variation\",\"Property\":\"Captured at\"}},\"Hierarchy\":\"Date Hierarchy\"}},\"Level\":\"Day\"}}}]},\"hasDefaultSort\":true}}",
+          "filters": "[]",
+          "height": 430.66,
+          "width": 936.85,
+          "x": 9.81,
+          "y": 0.00,
+          "z": 0.00
+        },
+        {
+          "config": "{\"name\":\"b828ea693730c90764d3\",\"layouts\":[{\"id\":0,\"position\":{\"x\":9.80995605158849,\"y\":430.65707066473465,\"z\":1,\"width\":936.8508029267007,\"height\":289.3937035218604,\"tabOrder\":1}}],\"singleVisual\":{\"visualType\":\"cardVisual\",\"projections\":{\"Data\":[{\"queryRef\":\"Rate History.Latest Rate\"},{\"queryRef\":\"Rate History.Rate Change %\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"r\",\"Entity\":\"Rate History\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"r\"}},\"Property\":\"Latest Rate\"},\"Name\":\"Rate History.Latest Rate\",\"NativeReferenceName\":\"Latest Rate\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"r\"}},\"Property\":\"Rate Change %\"},\"Name\":\"Rate History.Rate Change %\",\"NativeReferenceName\":\"Rate Change %\"}],\"OrderBy\":[{\"Direction\":2,\"Expression\":{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"r\"}},\"Property\":\"Latest Rate\"}}}]},\"hasDefaultSort\":true}}",
+          "filters": "[]",
+          "height": 289.39,
+          "width": 936.85,
+          "x": 9.81,
+          "y": 430.66,
+          "z": 1.00
+        },
+        {
+          "config": "{\"name\":\"f7a99792528759c520b6\",\"layouts\":[{\"id\":0,\"position\":{\"x\":946.6607589782892,\"y\":0,\"z\":2,\"width\":333.5385057540086,\"height\":720.050774186595,\"tabOrder\":2}}],\"singleVisual\":{\"visualType\":\"slicer\",\"projections\":{\"Values\":[{\"queryRef\":\"Rate History.Pair\",\"active\":true}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"r\",\"Entity\":\"Rate History\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"r\"}},\"Property\":\"Pair\"},\"Name\":\"Rate History.Pair\",\"NativeReferenceName\":\"Pair\"}]},\"objects\":{\"data\":[{\"properties\":{\"mode\":{\"expr\":{\"Literal\":{\"Value\":\"'Basic'\"}}}}}],\"general\":[{\"properties\":{}}]}}}",
+          "filters": "[]",
+          "height": 720.05,
+          "width": 333.54,
+          "x": 946.66,
+          "y": 0.00,
+          "z": 2.00
+        }
+      ],
       "width": 1280.00
     }
   ]
