@@ -331,14 +331,18 @@ cd fx-monitor/fx-monitor
 mvn javafx:run
 ```
 
-Before running, set a signing key via the `JWT_SECRET` environment variable (≥ 256 bits for HS512). If unset, a clearly-labelled insecure dev fallback is used so local runs work out of the box:
+That's it — no configuration, API keys or secrets are needed:
 
-```bash
-export JWT_SECRET="your-long-random-secret-at-least-256-bits"
-export FOREX_API_KEY="optional-exchange-rate-api-key"
-```
+- **Exchange rates** come from the free exchangerate-api.com v4 endpoint, which needs no API key.
+- **JWT signing secret** — on first run a random 512-bit secret is generated and stored in `~/.fx-monitor/jwt-secret`, so every install has its own key and nothing secret lives in the repo. To supply your own instead, set `JWT_SECRET` (at least 64 characters):
 
-> 🔐 Keep secrets out of version control — always provide `JWT_SECRET` via the environment in any real deployment.
+  ```bash
+  export JWT_SECRET="your-own-random-secret-of-at-least-64-characters"
+  ```
+- **REST API** listens on `localhost:8080` only. To expose it on the network, set `server.address: 0.0.0.0`.
+- **Personal overrides** go in `fx-monitor/src/main/resources/application-local.yml` (gitignored), which is loaded on top of the committed `application.yml`.
+
+> 🪟 **Windows:** some Power BI project paths are long. If the clone fails with `Filename too long`, clone with `git clone -c core.longpaths=true …` or into a short folder such as `C:\src`.
 
 ---
 
@@ -366,7 +370,7 @@ currency-exchange-platform/
 │       └── resources/
 │           ├── fxml/           # JavaFX view layouts
 │           ├── css/            # UI styles
-│           └── application.yml # App configuration
+│           └── application.yml # App configuration (committed, no secrets)
 └── LICENSE
 ```
 

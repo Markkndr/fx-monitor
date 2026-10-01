@@ -1,6 +1,11 @@
+# This file holds no secrets and works as-is after a clone. Put personal overrides in
+# application-local.yml next to it (gitignored) or pass them as environment variables.
 spring:
   application:
     name: currency-exchange-platform
+
+  config:
+    import: "optional:classpath:application-local.yml"
 
   datasource:
     url: jdbc:h2:file:${user.home}/.fx-monitor/data/fxmonitor;AUTO_SERVER=TRUE
@@ -22,20 +27,23 @@ spring:
 
   security:
     jwt:
-      # Provide JWT_SECRET via environment variable in any real deployment.
-      # The fallback below is for local development only and must be >= 256 bits for HS512.
-      secret: ${JWT_SECRET:dev-only-insecure-secret-change-me-make-it-long-and-secure-at-least-256-bits}
+      # Leave JWT_SECRET unset for local use: a random 512-bit secret is generated on first
+      # run and kept in secret-file. Set JWT_SECRET (>= 64 characters) to supply your own.
+      secret: ${JWT_SECRET:}
+      secret-file: ${user.home}/.fx-monitor/jwt-secret
       expiration: 900000 # 15-minute Access Token
       refresh-expiration: 604800000 # 7-day Refresh Token
 
 server:
   port: 8080
+  # Only this machine can reach the REST API (the desktop UI and scripts/export-fx-report.ps1
+  # both call localhost). Use 0.0.0.0 to expose it on the network.
+  address: 127.0.0.1
 
-# Forex API Configuration
+# Forex API Configuration (the v4 endpoint is free and needs no API key)
 forex:
   api:
     url: https://api.exchangerate-api.com/v4/latest
-    key: ${FOREX_API_KEY:}
     update-interval: 3600 # 1 hour
     timeout: 5000
   # Historical rate storage: which pairs to snapshot and how often (seconds).

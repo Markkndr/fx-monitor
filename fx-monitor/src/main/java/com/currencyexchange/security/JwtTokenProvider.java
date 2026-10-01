@@ -2,12 +2,14 @@ package com.currencyexchange.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,14 +18,23 @@ import java.util.Map;
 @Slf4j
 public class JwtTokenProvider {
 
-    @Value("${spring.security.jwt.secret}")
+    /** Blank unless JWT_SECRET is set; {@link #init()} then falls back to the per-user secret file. */
+    @Value("${spring.security.jwt.secret:}")
     private String jwtSecret;
 
-    @Value("${spring.security.jwt.expiration}")
-    private long jwtExpirationMs;
+    @Value("${spring.security.jwt.secret-file:${user.home}/.fx-monitor/jwt-secret}")
+    private String jwtSecretFile;
+
+    @Value("${spring.security.jwt.expiration:900000}")
+    private long jwtExpirationMs; // 15 minutes default
 
     @Value("${spring.security.jwt.refresh-expiration:604800000}")
     private long refreshTokenExpirationMs; // 7 days default
+
+    @PostConstruct
+    void init() {
+        jwtSecret = JwtSecretResolver.resolve(jwtSecret, Path.of(jwtSecretFile));
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());

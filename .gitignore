@@ -27,8 +27,8 @@ Thumbs.db
 .env
 *.local
 
-# Local Spring config (use application.yml.example as a template)
-fx-monitor/src/main/resources/application.yml
+# Personal Spring overrides (application.yml itself is committed and holds no secrets)
+fx-monitor/src/main/resources/application-local.yml
 
 # Claude Code artifacts
 MEMORY.md
