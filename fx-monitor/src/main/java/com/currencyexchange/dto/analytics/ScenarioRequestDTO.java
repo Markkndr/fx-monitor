@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ScenarioRequestDTO {
 
-    /** Home currency the impact is expressed in; defaults to USD when blank. */
+    /** Home currency the impact is expressed in; defaults to EUR when blank. */
     private String home;
 
     @NotEmpty(message = "At least one rate shock is required")

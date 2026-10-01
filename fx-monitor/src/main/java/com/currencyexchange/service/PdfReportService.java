@@ -74,7 +74,7 @@ public class PdfReportService {
      */
     public byte[] generateExecutiveSummary(Long userId, String homeCurrency) {
         String home = (homeCurrency == null || homeCurrency.isBlank())
-                ? "USD" : homeCurrency.toUpperCase();
+                ? "EUR" : homeCurrency.toUpperCase();
 
         PortfolioStatisticsDTO stats = portfolioStatisticsService.getPortfolioStatistics(userId, home);
         List<HedgeDTO> hedges = hedgeService.getUserHedges(userId);

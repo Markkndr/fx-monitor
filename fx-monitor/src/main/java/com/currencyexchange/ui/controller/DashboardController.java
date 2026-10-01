@@ -82,7 +82,7 @@ public class DashboardController {
     private static final DateTimeFormatter DATE_ONLY_FORMAT =
             DateTimeFormatter.ofPattern("dd MMM yyyy");
 
-    private static final String HOME_CURRENCY = "USD";
+    private static final String HOME_CURRENCY = "EUR";
 
     @Autowired private WalletRepository walletRepository;
     @Autowired private AuthService authService;
@@ -123,7 +123,7 @@ public class DashboardController {
 
         Thread t = new Thread(() -> {
             try {
-                ExchangeRateDTO rates = exchangeRateService.getRates("USD");
+                ExchangeRateDTO rates = exchangeRateService.getRates(HOME_CURRENCY);
                 Platform.runLater(() -> displayRates(rates));
             } catch (Exception e) {
                 Platform.runLater(() -> {
@@ -160,13 +160,13 @@ public class DashboardController {
         Label descLabel = new Label();
         descLabel.getStyleClass().add("rate-description");
 
-        if ("USD".equals(currency)) {
+        if (HOME_CURRENCY.equals(currency)) {
             rateLabel.setText("BASE");
             descLabel.setText("reference");
         } else {
             int scale = "JPY".equals(currency) ? 2 : 4;
             rateLabel.setText(rate.setScale(scale, RoundingMode.HALF_UP).toPlainString());
-            descLabel.setText("per 1 USD");
+            descLabel.setText("per 1 " + HOME_CURRENCY);
         }
 
         card.getChildren().addAll(currencyLabel, rateLabel, descLabel);
@@ -927,8 +927,8 @@ public class DashboardController {
         if (session == null) return;
         Long userId = session.getUserId();
 
-        TextField base = dialogField("USD");
-        TextField quote = dialogField("EUR");
+        TextField base = dialogField(HOME_CURRENCY);
+        TextField quote = dialogField("USD");
 
         ComboBox<String> directionBox = new ComboBox<>();
         directionBox.getItems().addAll(RateAlert.DIRECTION_ABOVE, RateAlert.DIRECTION_BELOW);

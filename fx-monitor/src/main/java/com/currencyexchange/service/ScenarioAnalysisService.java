@@ -30,7 +30,7 @@ import java.util.Map;
 @Slf4j
 public class ScenarioAnalysisService {
 
-    private static final String DEFAULT_HOME = "USD";
+    private static final String DEFAULT_HOME = "EUR";
     private static final int MONEY_SCALE = 2;
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 

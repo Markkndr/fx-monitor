@@ -31,10 +31,10 @@ public class RateSnapshotService {
     @Autowired
     private ExchangeRateService exchangeRateService;
 
-    @Value("${forex.snapshot.base:USD}")
+    @Value("${forex.snapshot.base:EUR}")
     private String base;
 
-    @Value("${forex.snapshot.currencies:EUR,GBP,JPY,CNY,CHF,CAD,AUD}")
+    @Value("${forex.snapshot.currencies:USD,GBP,JPY,CNY,CHF,CAD,AUD}")
     private List<String> quoteCurrencies;
 
     /**

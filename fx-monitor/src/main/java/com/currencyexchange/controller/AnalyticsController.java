@@ -52,7 +52,7 @@ public class AnalyticsController {
     /** Standard battery of adverse stress scenarios. */
     @GetMapping("/stress")
     public ResponseEntity<StressTestResultDTO> runStressTests(
-            @RequestParam(required = false, defaultValue = "USD") String home,
+            @RequestParam(required = false, defaultValue = "EUR") String home,
             Authentication authentication) {
 
         return ResponseEntity.ok(scenarioAnalysisService.runStressTests(currentUserId(authentication), home));
@@ -61,7 +61,7 @@ public class AnalyticsController {
     /** FX P&L attribution over the last {@code lookbackDays} days from stored rate history. */
     @GetMapping("/attribution")
     public ResponseEntity<AttributionResultDTO> attribution(
-            @RequestParam(required = false, defaultValue = "USD") String home,
+            @RequestParam(required = false, defaultValue = "EUR") String home,
             @RequestParam(required = false, defaultValue = "30") int lookbackDays,
             Authentication authentication) {
 
@@ -72,7 +72,7 @@ public class AnalyticsController {
     /** Historical-simulation Value at Risk for the portfolio. */
     @GetMapping("/var")
     public ResponseEntity<VarResultDTO> valueAtRisk(
-            @RequestParam(required = false, defaultValue = "USD") String home,
+            @RequestParam(required = false, defaultValue = "EUR") String home,
             @RequestParam(required = false) BigDecimal confidence,
             @RequestParam(required = false, defaultValue = "365") int lookbackDays,
             Authentication authentication) {

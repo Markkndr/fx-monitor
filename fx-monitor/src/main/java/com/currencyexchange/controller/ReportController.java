@@ -47,7 +47,7 @@ public class ReportController {
     /** Download the caller's portfolio as an {@code .xlsx} workbook, valued in {@code home}. */
     @GetMapping("/export.xlsx")
     public ResponseEntity<byte[]> exportExcel(
-            @RequestParam(required = false, defaultValue = "USD") String home,
+            @RequestParam(required = false, defaultValue = "EUR") String home,
             Authentication authentication) {
 
         Long userId = currentUserId(authentication);
@@ -65,7 +65,7 @@ public class ReportController {
     /** Download the caller's FX risk executive summary as a PDF, valued in {@code home}. */
     @GetMapping("/executive.pdf")
     public ResponseEntity<byte[]> exportExecutivePdf(
-            @RequestParam(required = false, defaultValue = "USD") String home,
+            @RequestParam(required = false, defaultValue = "EUR") String home,
             Authentication authentication) {
 
         Long userId = currentUserId(authentication);
@@ -83,7 +83,7 @@ public class ReportController {
     /** Download the caller's hedge-effectiveness compliance report as a PDF, valued in {@code home}. */
     @GetMapping("/compliance.pdf")
     public ResponseEntity<byte[]> exportCompliancePdf(
-            @RequestParam(required = false, defaultValue = "USD") String home,
+            @RequestParam(required = false, defaultValue = "EUR") String home,
             Authentication authentication) {
 
         Long userId = currentUserId(authentication);

@@ -40,8 +40,8 @@ forex:
     timeout: 5000
   # Historical rate storage: which pairs to snapshot and how often (seconds).
   snapshot:
-    base: USD
-    currencies: EUR,GBP,JPY,CNY,CHF,CAD,AUD
+    base: EUR
+    currencies: USD,GBP,JPY,CNY,CHF,CAD,AUD
     interval: 3600 # 1 hour
   alert:
     # How often active rate alerts are re-evaluated against live quotes (seconds).

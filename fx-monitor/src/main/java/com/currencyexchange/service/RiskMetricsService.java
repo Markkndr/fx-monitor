@@ -33,13 +33,13 @@ import java.util.TreeMap;
  *
  * <p>Both revalue the current net exposure at historical rates, so they only cover
  * currency pairs the snapshot job has been capturing (base = the snapshot base,
- * usually USD). Rates are quoted as units of the foreign currency per 1 unit of home.
+ * usually EUR). Rates are quoted as units of the foreign currency per 1 unit of home.
  */
 @Service
 @Slf4j
 public class RiskMetricsService {
 
-    private static final String DEFAULT_HOME = "USD";
+    private static final String DEFAULT_HOME = "EUR";
     private static final int MONEY_SCALE = 2;
     private static final int PERCENT_SCALE = 2;
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);

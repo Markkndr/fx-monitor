@@ -86,7 +86,7 @@ public class ComplianceReportService {
      */
     public byte[] generateComplianceReport(Long userId, String homeCurrency) {
         String home = (homeCurrency == null || homeCurrency.isBlank())
-                ? "USD" : homeCurrency.toUpperCase();
+                ? "EUR" : homeCurrency.toUpperCase();
 
         List<HedgeDTO> hedges = hedgeService.getUserHedges(userId);
         List<HedgeDTO> designated = hedges.stream().filter(this::isDesignated).toList();

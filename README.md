@@ -228,7 +228,7 @@ Exposure tracking, FX rate integration, hedging management, the advanced-analyti
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/portfolio` | Net exposure per currency and total portfolio value, valued in `?home=` (defaults to USD) |
+| `GET` | `/portfolio` | Net exposure per currency and total portfolio value, valued in `?home=` (defaults to EUR) |
 
 ### Implemented API — `/api/exposures`
 
@@ -272,9 +272,9 @@ Exposure tracking, FX rate integration, hedging management, the advanced-analyti
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/export.xlsx` | Download the caller's portfolio as a multi-sheet Excel workbook, valued in `?home=` (defaults to USD) |
-| `GET` | `/executive.pdf` | Download the caller's FX risk executive summary as a PDF, valued in `?home=` (defaults to USD) |
-| `GET` | `/compliance.pdf` | Download the caller's hedge-effectiveness compliance report as a PDF, valued in `?home=` (defaults to USD) |
+| `GET` | `/export.xlsx` | Download the caller's portfolio as a multi-sheet Excel workbook, valued in `?home=` (defaults to EUR) |
+| `GET` | `/executive.pdf` | Download the caller's FX risk executive summary as a PDF, valued in `?home=` (defaults to EUR) |
+| `GET` | `/compliance.pdf` | Download the caller's hedge-effectiveness compliance report as a PDF, valued in `?home=` (defaults to EUR) |
 
 > All `/api/transactions`, `/api/statistics`, `/api/exposures`, `/api/alerts`, `/api/hedges`, `/api/analytics`, and `/api/reports` endpoints are scoped to the authenticated user — a user can only ever see their own data.
 

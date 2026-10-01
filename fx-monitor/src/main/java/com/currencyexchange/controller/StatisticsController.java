@@ -26,12 +26,12 @@ public class StatisticsController {
 
     /**
      * Returns net exposure per currency and the total portfolio value for the
-     * authenticated user, valued in {@code home} (defaults to USD). Scoped to the
+     * authenticated user, valued in {@code home} (defaults to EUR). Scoped to the
      * caller's own wallets — a user can never see another user's exposures.
      */
     @GetMapping("/portfolio")
     public ResponseEntity<PortfolioStatisticsDTO> getPortfolioStatistics(
-            @RequestParam(required = false, defaultValue = "USD") String home,
+            @RequestParam(required = false, defaultValue = "EUR") String home,
             Authentication authentication) {
 
         Long userId = currentUserId(authentication);

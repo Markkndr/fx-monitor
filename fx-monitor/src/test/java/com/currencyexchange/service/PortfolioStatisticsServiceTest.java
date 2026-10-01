@@ -148,16 +148,16 @@ class PortfolioStatisticsServiceTest {
     }
 
     @Test
-    @DisplayName("defaults the home currency to USD when none is supplied")
+    @DisplayName("defaults the home currency to EUR when none is supplied")
     void defaultsHomeCurrency() {
         when(walletRepository.findByUserId(USER_ID)).thenReturn(List.of(
                 wallet("USD", "100.00", "0.00")));
-        when(exchangeRateService.getRates("USD")).thenReturn(rates(Map.of()));
+        when(exchangeRateService.getRates("EUR")).thenReturn(rates(Map.of()));
 
         PortfolioStatisticsDTO stats = portfolioStatisticsService.getPortfolioStatistics(USER_ID, null);
 
-        assertThat(stats.getHomeCurrency()).isEqualTo("USD");
-        verify(exchangeRateService).getRates("USD");
+        assertThat(stats.getHomeCurrency()).isEqualTo("EUR");
+        verify(exchangeRateService).getRates("EUR");
     }
 
     private CurrencyExposureDTO exposureFor(PortfolioStatisticsDTO stats, String currency) {

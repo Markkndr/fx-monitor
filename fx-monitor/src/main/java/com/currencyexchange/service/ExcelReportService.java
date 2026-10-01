@@ -47,10 +47,10 @@ public class ExcelReportService {
     @Autowired
     private RateSnapshotService rateSnapshotService;
 
-    @Value("${forex.snapshot.base:USD}")
+    @Value("${forex.snapshot.base:EUR}")
     private String snapshotBase;
 
-    @Value("${forex.snapshot.currencies:EUR,GBP,JPY,CNY,CHF,CAD,AUD}")
+    @Value("${forex.snapshot.currencies:USD,GBP,JPY,CNY,CHF,CAD,AUD}")
     private List<String> snapshotCurrencies;
 
     /**
@@ -59,7 +59,7 @@ public class ExcelReportService {
      */
     public byte[] generateWorkbook(Long userId, String homeCurrency) {
         String home = (homeCurrency == null || homeCurrency.isBlank())
-                ? "USD" : homeCurrency.toUpperCase();
+                ? "EUR" : homeCurrency.toUpperCase();
 
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {

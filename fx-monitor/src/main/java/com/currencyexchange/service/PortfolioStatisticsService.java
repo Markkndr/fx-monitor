@@ -41,7 +41,7 @@ import java.util.TreeMap;
 @Slf4j
 public class PortfolioStatisticsService {
 
-    private static final String DEFAULT_HOME_CURRENCY = "USD";
+    private static final String DEFAULT_HOME_CURRENCY = "EUR";
     private static final int MONEY_SCALE = 2;
     private static final int PERCENT_SCALE = 2;
 
