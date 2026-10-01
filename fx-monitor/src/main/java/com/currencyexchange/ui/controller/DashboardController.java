@@ -894,12 +894,12 @@ public class DashboardController {
         HBox.setHgrow(actions, Priority.ALWAYS);
         if (RateAlert.STATUS_TRIGGERED.equalsIgnoreCase(alert.getStatus())) {
             Button rearm = new Button("Re-arm");
-            rearm.getStyleClass().add("link-text");
+            rearm.getStyleClass().add("row-action-button");
             rearm.setOnAction(e -> runAlertAction(() -> rateAlertService.rearmAlert(currentUserId(), alert.getId())));
             actions.getChildren().add(rearm);
         }
         Button delete = new Button("Delete");
-        delete.getStyleClass().add("link-text");
+        delete.getStyleClass().addAll("row-action-button", "row-action-danger");
         delete.setOnAction(e -> runAlertAction(() -> rateAlertService.deleteAlert(currentUserId(), alert.getId())));
         actions.getChildren().add(delete);
 

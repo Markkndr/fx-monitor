@@ -404,6 +404,46 @@
     -fx-text-fill: #ed4245;
 }
 
+/* Inline row action buttons (e.g. alert Re-arm / Delete) */
+.row-action-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b0b7ff;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12 4 12;
+    -fx-background-radius: 4;
+    -fx-border-color: #5865f2;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+}
+
+.row-action-button:hover {
+    -fx-background-color: #5865f2;
+    -fx-text-fill: #ffffff;
+}
+
+.row-action-button:pressed {
+    -fx-background-color: #4752c4;
+    -fx-border-color: #4752c4;
+}
+
+.row-action-danger {
+    -fx-text-fill: #ed4245;
+    -fx-border-color: #4a1f23;
+}
+
+.row-action-danger:hover {
+    -fx-background-color: #ed4245;
+    -fx-border-color: #ed4245;
+    -fx-text-fill: #ffffff;
+}
+
+.row-action-danger:pressed {
+    -fx-background-color: #c03537;
+    -fx-border-color: #c03537;
+}
+
 /* Instrument / direction badges */
 .txn-type-forward {
     -fx-background-color: #3b3f6b;
